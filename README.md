@@ -1,54 +1,160 @@
 # C4GT Hub Attendance
 
-Attendance tracking application for C4GT Hub — 81 members (36 junior
-developer interns, 36 senior developer interns, 9 team leads). Built as part
-of the C4GT Hub @ KIET four-week learning task (MERN + shadcn/ui + Recharts).
+A full-stack attendance management project for the C4GT Hub learning initiative. The application is designed to manage member records and visualize attendance data across different participant groups.
 
-## Project goal
+## Overview
 
-Three dashboards — Overall Attendance, Junior Developer Intern, Senior
-Developer Intern — backed by a CRUD REST API, with per-member Recharts
-visualizations on click.
+This repository contains the foundation for a MERN stack attendance application with:
 
-## Structure
+- a backend API for member management,
+- a frontend dashboard for attendance insights,
+- role-based grouping for junior interns, senior interns, and team leads,
+- future analytics views built with charts and dashboard components.
 
-```
+The project is structured as a multi-week implementation plan, with the backend being developed first and the frontend dashboard layers added later.
+
+## Project Goals
+
+- Maintain a central member database for C4GT Hub participants
+- Support attendance-related member operations through REST APIs
+- Provide dashboards for:
+  - overall attendance,
+  - junior developer interns,
+  - senior developer interns
+- Enable future UI-based analytics with chart visualizations
+
+## Tech Stack
+
+### Backend
+- Node.js
+- Express.js
+- MongoDB with Mongoose
+- dotenv
+- CORS
+
+### Frontend
+- React
+- Vite or similar React setup
+- shadcn/ui
+- Recharts
+
+## Repository Structure
+
+```bash
 c4gt-hub-attendance/
-├── backend/              ← build this fully in Week 1
+├── backend/
 │   ├── src/
-│   │   ├── models/
-│   │   ├── routes/
+│   │   ├── config/
 │   │   ├── controllers/
 │   │   ├── middleware/
-│   │   └── config/
+│   │   ├── models/
+│   │   ├── routes/
+│   │   ├── seed.js
+│   │   └── server.js
 │   ├── .env.example
 │   ├── package.json
 │   └── README.md
-├── frontend/             ← empty/placeholder for now, fill in Week 2
+├── frontend/
+│   └── .gitkeep
 ├── .gitignore
-└── README.md             ← top-level project overview
+├── README.md
+└── package-lock.json
 ```
 
-| Week | What happens to this structure |
-|---|---|
-| 1 | `backend/` gets fully built — models, routes, controllers, middleware, config for the Member Management API |
-| 2 | `frontend/` stops being a placeholder — React + shadcn/ui components go in, connected to the Week 1 API |
-| 3 | Chart components (Recharts) get added inside `frontend/` — no new top-level folders needed |
-| 4 | Both `backend/` and `frontend/` get extended into the real attendance app — attendance endpoints, 3 dashboards, Recharts on click |
+## Current Status
 
-## Weekly plan
+This repository currently includes the project skeleton and backend setup files. The backend foundation is being prepared for member CRUD APIs, validation, middleware, and database integration.
 
-| Week | Focus | Output |
-|---|---|---|
-| 1 | MERN foundations | Member Management API |
-| 2 | React + shadcn/ui | Member Management UI |
-| 3 | Recharts | Analytics dashboard |
-| 4 | Integration | Full 3-dashboard attendance app |
+## Getting Started
 
-## Branching
+### 1. Clone the repository
 
-- `main` — stable, reviewed code only
-- `develop` — integration branch
-- `feature/<area>-<task>` — one branch per task, merged into `develop` via PR
+```bash
+git clone https://github.com/regulanikhitha/RCTS-C4GT-TEAM-4.git
+cd RCTS-C4GT-TEAM-4
+```
 
-See `backend/README.md` for setup instructions and API documentation.
+### 2. Install backend dependencies
+
+```bash
+cd backend
+npm install
+```
+
+### 3. Configure environment variables
+
+Copy the example environment file and add your MongoDB connection string:
+
+```bash
+cp .env.example .env
+```
+
+Then update `.env` with:
+
+```env
+MONGO_URI=your_mongodb_connection_string
+PORT=5000
+```
+
+### 4. Run the backend
+
+```bash
+npm run dev
+```
+
+Or start the server directly:
+
+```bash
+npm start
+```
+
+## Backend API Scope
+
+The backend is intended to expose member management routes such as:
+
+- `GET /members`
+- `GET /members/:id`
+- `POST /members`
+- `PUT /members/:id`
+- `PATCH /members/:id`
+- `DELETE /members/:id`
+
+## Member Model
+
+Each member may include fields such as:
+
+- name
+- email
+- role
+- team
+- joinDate
+- status
+
+## Development Workflow
+
+This repository follows a simple development flow:
+
+- `main` for stable code
+- feature branches for task-specific work
+- pull requests for review and merge
+
+## Contribution
+
+Contributions are welcome. Please:
+
+1. create a feature branch,
+2. make focused changes,
+3. test locally,
+4. open a pull request with a clear summary.
+
+## Credits
+
+This project is part of the C4GT Hub learning initiative and is being developed as a multi-week MERN application for attendance tracking and data visualization.
+
+## License
+
+This project is currently unlicensed unless otherwise specified by the team.
+
+## Related Documentation
+
+- [backend/README.md](backend/README.md)
