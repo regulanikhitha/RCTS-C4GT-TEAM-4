@@ -1,6 +1,5 @@
 const mongoose = require('mongoose');
 
-// Regular expression for validating standard email format
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 /**
@@ -9,6 +8,12 @@ const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
  */
 const memberSchema = new mongoose.Schema(
   {
+    memberId: {
+      type: String,
+      required: [true, 'Member ID is required'],
+      unique: true,
+      trim: true,
+    },
     name: {
       type: String,
       required: [true, 'Name is required'],
@@ -26,27 +31,39 @@ const memberSchema = new mongoose.Schema(
       type: String,
       required: [true, 'Role is required'],
       enum: {
-        values: ['junior', 'senior', 'lead'],
-        message: '{VALUE} is not a valid role. Allowed roles: junior, senior, lead',
+        values: [
+          'Junior Developer',
+          'Senior Developer',
+          'User',
+          'junior',
+          'senior',
+          'lead',
+        ],
+        message: '{VALUE} is not a valid role. Allowed roles: Junior Developer, Senior Developer, User',
       },
-      lowercase: true,
+      trim: true,
+    },
+    department: {
+      type: String,
+      default: 'Engineering',
       trim: true,
     },
     team: {
       type: String,
-      required: [true, 'Team is required'],
+      default: 'Backend Engineering',
       trim: true,
     },
     joinDate: {
       type: Date,
       default: Date.now,
     },
+    isActive: {
+      type: Boolean,
+      default: true,
+    },
     status: {
       type: String,
-      enum: {
-        values: ['active', 'inactive'],
-        message: '{VALUE} is not a valid status. Allowed values: active, inactive',
-      },
+      enum: ['active', 'inactive'],
       default: 'active',
       lowercase: true,
       trim: true,

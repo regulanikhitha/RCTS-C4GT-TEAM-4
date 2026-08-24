@@ -2,41 +2,52 @@ const mongoose = require('mongoose');
 const Member = require('../models/Member');
 
 /**
- * @desc    Get all members (supports optional ?role= query filter)
+ * @desc    Get all members (supports ?role=, ?department=, ?isActive= query filters)
  * @route   GET /api/members
- * @access  Public
+ * @access  Private (Admin & Coordinator)
  */
 const getMembers = async (req, res, next) => {
   try {
-    const { role } = req.query;
+    const { role, department, isActive } = req.query;
     const filter = {};
 
     if (role) {
-      filter.role = role.toLowerCase();
+      filter.role = new RegExp(`^${role.trim()}$`, 'i');
     }
 
-    const members = await Member.find(filter).sort({ createdAt: -1 });
-    return res.status(200).json(members);
+    if (department) {
+      filter.department = new RegExp(`^${department.trim()}$`, 'i');
+    }
+
+    if (isActive !== undefined) {
+      filter.isActive = isActive === 'true';
+    }
+
+    const members = await Member.find(filter).sort({ memberId: 1, createdAt: 1 });
+    return res.status(200).json({
+      count: members.length,
+      members,
+    });
   } catch (error) {
     return next(error);
   }
 };
 
 /**
- * @desc    Get single member by ID
- * @route   GET /api/members/:id
- * @access  Public
+ * @desc    Get single member by memberId or MongoDB _id
+ * @route   GET /api/members/:memberId
+ * @access  Private (Admin & Coordinator)
  */
 const getMemberById = async (req, res, next) => {
   try {
-    const { id } = req.params;
+    const { memberId } = req.params;
 
-    // Validate ObjectId format
-    if (!mongoose.Types.ObjectId.isValid(id)) {
-      return res.status(404).json({ message: 'Member not found' });
+    let member = await Member.findOne({ memberId: memberId.trim() });
+
+    if (!member && mongoose.Types.ObjectId.isValid(memberId)) {
+      member = await Member.findById(memberId);
     }
 
-    const member = await Member.findById(id);
     if (!member) {
       return res.status(404).json({ message: 'Member not found' });
     }
@@ -50,32 +61,33 @@ const getMemberById = async (req, res, next) => {
 /**
  * @desc    Create a new member
  * @route   POST /api/members
- * @access  Public
+ * @access  Private (Admin only)
  */
 const createMember = async (req, res, next) => {
   try {
-    const { name, email, role, team, joinDate, status } = req.body;
+    const { memberId, name, email, role, department, team, isActive, status } = req.body;
 
     const newMember = new Member({
+      memberId: memberId || `C4GT-${Date.now().toString().slice(-4)}`,
       name,
       email,
-      role,
+      role: role || 'Junior Developer',
+      department,
       team,
-      joinDate,
-      status,
+      isActive: isActive !== undefined ? isActive : true,
+      status: status || 'active',
     });
 
     const savedMember = await newMember.save();
     return res.status(201).json(savedMember);
   } catch (error) {
-    // Handle duplicate email (E11000)
     if (error.code === 11000) {
+      const field = Object.keys(error.keyValue || {})[0] || 'Field';
       return res.status(400).json({
-        message: 'Email already exists. Please provide a unique email address.',
+        message: `${field.charAt(0).toUpperCase() + field.slice(1)} already exists. Please provide a unique value.`,
       });
     }
 
-    // Handle Mongoose validation errors
     if (error.name === 'ValidationError') {
       const messages = Object.values(error.errors).map((err) => err.message);
       return res.status(400).json({
@@ -88,25 +100,28 @@ const createMember = async (req, res, next) => {
 };
 
 /**
- * @desc    Update a member (PUT/PATCH)
- * @route   PUT /api/members/:id or PATCH /api/members/:id
- * @access  Public
+ * @desc    Update a member
+ * @route   PUT /api/members/:memberId
+ * @access  Private (Admin only)
  */
 const updateMember = async (req, res, next) => {
   try {
-    const { id } = req.params;
+    const { memberId } = req.params;
 
-    // Validate ObjectId format
-    if (!mongoose.Types.ObjectId.isValid(id)) {
-      return res.status(404).json({ message: 'Member not found' });
+    let filter = { memberId: memberId.trim() };
+    if (mongoose.Types.ObjectId.isValid(memberId)) {
+      const exists = await Member.findOne({ memberId: memberId.trim() });
+      if (!exists) {
+        filter = { _id: memberId };
+      }
     }
 
-    const updatedMember = await Member.findByIdAndUpdate(
-      id,
+    const updatedMember = await Member.findOneAndUpdate(
+      filter,
       { $set: req.body },
       {
-        new: true, // Return updated document
-        runValidators: true, // Ensure validations like enum and regex run on update
+        new: true,
+        runValidators: true,
         context: 'query',
       }
     );
@@ -117,14 +132,12 @@ const updateMember = async (req, res, next) => {
 
     return res.status(200).json(updatedMember);
   } catch (error) {
-    // Handle duplicate email (E11000)
     if (error.code === 11000) {
       return res.status(400).json({
-        message: 'Email already exists. Please provide a unique email address.',
+        message: 'Email or Member ID already exists. Please provide unique values.',
       });
     }
 
-    // Handle Mongoose validation errors (e.g. invalid role enum, bad email format)
     if (error.name === 'ValidationError') {
       const messages = Object.values(error.errors).map((err) => err.message);
       return res.status(400).json({
@@ -138,19 +151,22 @@ const updateMember = async (req, res, next) => {
 
 /**
  * @desc    Delete a member
- * @route   DELETE /api/members/:id
- * @access  Public
+ * @route   DELETE /api/members/:memberId
+ * @access  Private (Admin only)
  */
 const deleteMember = async (req, res, next) => {
   try {
-    const { id } = req.params;
+    const { memberId } = req.params;
 
-    // Validate ObjectId format
-    if (!mongoose.Types.ObjectId.isValid(id)) {
-      return res.status(404).json({ message: 'Member not found' });
+    let filter = { memberId: memberId.trim() };
+    if (mongoose.Types.ObjectId.isValid(memberId)) {
+      const exists = await Member.findOne({ memberId: memberId.trim() });
+      if (!exists) {
+        filter = { _id: memberId };
+      }
     }
 
-    const deletedMember = await Member.findByIdAndDelete(id);
+    const deletedMember = await Member.findOneAndDelete(filter);
 
     if (!deletedMember) {
       return res.status(404).json({ message: 'Member not found' });

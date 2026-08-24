@@ -7,16 +7,22 @@ const {
   updateMember,
   deleteMember,
 } = require('../controllers/memberController');
+const { authenticateUser, authorizeRole } = require('../middleware/auth');
 
-// Member B routes: List members (supports ?role= filter) & Create member
-router.route('/').get(getMembers).post(createMember);
+// Protect all member routes with authentication
+router.use(authenticateUser);
 
-// Member B & C routes: Get single member, Update member (PUT/PATCH), Delete member (DELETE)
+// GET /api/members (Admin & Coordinator read-only) | POST /api/members (Admin only)
 router
-  .route('/:id')
-  .get(getMemberById)
-  .put(updateMember)
-  .patch(updateMember)
-  .delete(deleteMember);
+  .route('/')
+  .get(authorizeRole('admin', 'coordinator'), getMembers)
+  .post(authorizeRole('admin'), createMember);
+
+// GET /api/members/:memberId (Admin & Coord) | PUT / DELETE (Admin only)
+router
+  .route('/:memberId')
+  .get(authorizeRole('admin', 'coordinator'), getMemberById)
+  .put(authorizeRole('admin'), updateMember)
+  .delete(authorizeRole('admin'), deleteMember);
 
 module.exports = router;
