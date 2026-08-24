@@ -11,6 +11,14 @@ const PORT = process.env.PORT || 5000;
 
 // --------------- Middleware ---------------
 
+// Request logger middleware
+try {
+  const logger = require('./middleware/logger');
+  app.use(logger);
+} catch (e) {
+  // Ignore if logger not found
+}
+
 // Enable CORS for all origins (frontend will be on a different port)
 app.use(cors());
 

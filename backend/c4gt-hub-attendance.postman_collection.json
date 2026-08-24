@@ -1,0 +1,315 @@
+{
+  "info": {
+    "_postman_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+    "name": "C4GT Hub Attendance API",
+    "description": "Postman collection covering all Member Management API endpoints with valid and invalid test scenarios (Week 1).",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:5000",
+      "type": "string"
+    },
+    {
+      "key": "memberId",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Health Check",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/health",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "health"]
+        },
+        "description": "Verify API server is up and responsive."
+      },
+      "response": []
+    },
+    {
+      "name": "1. GET /api/members (List All)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/members",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "members"]
+        },
+        "description": "Fetch all members from the database (200 OK)."
+      },
+      "response": []
+    },
+    {
+      "name": "2. GET /api/members?role=junior (Filter by Role)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/members?role=junior",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "members"],
+          "query": [
+            {
+              "key": "role",
+              "value": "junior"
+            }
+          ]
+        },
+        "description": "Filter members by role (e.g. junior, senior, lead) (200 OK)."
+      },
+      "response": []
+    },
+    {
+      "name": "3. POST /api/members (Valid Create)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "if (pm.response.code === 201) {",
+              "    var jsonData = pm.response.json();",
+              "    pm.collectionVariables.set('memberId', jsonData._id);",
+              "}"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"John Doe\",\n  \"email\": \"john.doe@example.com\",\n  \"role\": \"junior\",\n  \"team\": \"Backend Engineering\",\n  \"status\": \"active\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/members",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "members"]
+        },
+        "description": "Create a new member with all valid fields (201 Created)."
+      },
+      "response": []
+    },
+    {
+      "name": "4. POST /api/members (Invalid - Missing Required Fields)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"missingfields@example.com\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/members",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "members"]
+        },
+        "description": "Fails validation when required fields like 'name' and 'role' are omitted (400 Bad Request)."
+      },
+      "response": []
+    },
+    {
+      "name": "5. POST /api/members (Invalid - Invalid Role Enum)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Jane Smith\",\n  \"email\": \"jane.smith@example.com\",\n  \"role\": \"intern\",\n  \"team\": \"Backend Engineering\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/members",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "members"]
+        },
+        "description": "Fails validation when role is outside ['junior', 'senior', 'lead'] (400 Bad Request)."
+      },
+      "response": []
+    },
+    {
+      "name": "6. POST /api/members (Invalid - Duplicate Email)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Duplicate User\",\n  \"email\": \"john.doe@example.com\",\n  \"role\": \"senior\",\n  \"team\": \"DevOps\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/members",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "members"]
+        },
+        "description": "Fails when creating a member with an email that already exists (400 Bad Request)."
+      },
+      "response": []
+    },
+    {
+      "name": "7. GET /api/members/:id (Valid ID)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/members/{{memberId}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "members", "{{memberId}}"]
+        },
+        "description": "Get single member details by valid ID (200 OK)."
+      },
+      "response": []
+    },
+    {
+      "name": "8. GET /api/members/:id (Nonexistent ID - 404)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/members/65e9b8888888888888888888",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "members", "65e9b8888888888888888888"]
+        },
+        "description": "Fetch a nonexistent member ID (404 Not Found)."
+      },
+      "response": []
+    },
+    {
+      "name": "9. PUT /api/members/:id (Valid Update)",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"role\": \"senior\",\n  \"team\": \"Architecture & Core\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/members/{{memberId}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "members", "{{memberId}}"]
+        },
+        "description": "Update an existing member with valid fields (200 OK)."
+      },
+      "response": []
+    },
+    {
+      "name": "10. PUT /api/members/:id (Invalid Role on Update - 400)",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"role\": \"director\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/members/{{memberId}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "members", "{{memberId}}"]
+        },
+        "description": "Fails validation when updating to an invalid role (400 Bad Request)."
+      },
+      "response": []
+    },
+    {
+      "name": "11. PUT /api/members/:id (Nonexistent ID - 404)",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"team\": \"New Team\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/members/65e9b8888888888888888888",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "members", "65e9b8888888888888888888"]
+        },
+        "description": "Attempt to update a nonexistent member ID (404 Not Found)."
+      },
+      "response": []
+    },
+    {
+      "name": "12. DELETE /api/members/:id (Valid Delete)",
+      "request": {
+        "method": "DELETE",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/members/{{memberId}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "members", "{{memberId}}"]
+        },
+        "description": "Delete a member by ID (200 OK)."
+      },
+      "response": []
+    },
+    {
+      "name": "13. DELETE /api/members/:id (Nonexistent ID - 404)",
+      "request": {
+        "method": "DELETE",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/members/65e9b8888888888888888888",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "members", "65e9b8888888888888888888"]
+        },
+        "description": "Attempt to delete a nonexistent member ID (404 Not Found)."
+      },
+      "response": []
+    },
+    {
+      "name": "14. 404 Fallback (Unmatched Route)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/unmatched-route",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "unmatched-route"]
+        },
+        "description": "Test fallback middleware on undefined routes (404 Not Found)."
+      },
+      "response": []
+    }
+  ]
+}

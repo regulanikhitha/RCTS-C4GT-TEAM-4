@@ -1,71 +1,263 @@
-# C4GT Hub Attendance — Backend (Week 1)
+# C4GT Hub Attendance — Backend API (Week 1)
 
-This is a **file skeleton only** — folders and empty files matching each
-person's assigned task, so everyone knows exactly where their code goes.
-No implementation is included; each person writes their own code per the
-Week 1 Task Assignment doc.
+RESTful API backend for the **C4GT Hub Attendance** application built with Node.js, Express, and MongoDB (Mongoose).
 
-## Setup
+---
 
-```
+## 🛠️ Tech Stack
+
+- **Runtime**: Node.js
+- **Framework**: Express.js
+- **Database**: MongoDB (via Mongoose ODM)
+- **Tooling & Utilities**: dotenv, cors, nodemon
+
+---
+
+## 🚀 Setup & Installation
+
+### 1. Prerequisites
+- Node.js (v18+ recommended)
+- MongoDB Atlas cluster or local MongoDB instance
+
+### 2. Install Dependencies
+```bash
 cd backend
 npm install
+```
+
+### 3. Configure Environment Variables
+Create a `.env` file in the `backend` directory (copy from `.env.example`):
+```bash
 cp .env.example .env
 ```
-Fill in `MONGO_URI` in `.env` with your MongoDB connection string.
 
-## Folder structure
+Configure your variables in `.env`:
+```env
+MONGO_URI=your_mongodb_connection_string
+PORT=5000
+NODE_ENV=development
+```
+
+### 4. Seed Sample Data
+Populate the database with sample `junior`, `senior`, and `lead` member records:
+```bash
+npm run seed
+```
+
+### 5. Start the Server
+- **Development mode** (auto-reload with nodemon):
+  ```bash
+  npm run dev
+  ```
+- **Production mode**:
+  ```bash
+  npm start
+  ```
+The server will run on `http://localhost:5000`.
+
+---
+
+## 📁 Architecture & File Structure
 
 ```
 backend/
 ├── src/
-│   ├── config/db.js               Akhil — MongoDB connection (Mongoose)
-│   ├── models/Member.js            Nikitha — Member schema + validation
-│   ├── routes/members.js            Devi + Lithika Sraya — route definitions
+│   ├── config/
+│   │   └── db.js                    # MongoDB connection via Mongoose
+│   ├── models/
+│   │   └── Member.js                # Mongoose Member schema & validation
+│   ├── routes/
+│   │   └── members.js               # Express route definitions
 │   ├── controllers/
-│   │   └── memberController.js       Devi + Lithika Sraya — CRUD handler logic
+│   │   └── memberController.js      # CRUD handler logic (GET, POST, PUT/PATCH, DELETE)
 │   ├── middleware/
-│   │   ├── errorHandler.js            Sai Teja — centralized error handler
-│   │   └── notFound.js                 Sai Teja — 404 fallback
-│   ├── seed.js                          Nikitha — sample data seeder
-│   └── server.js                         Akhil — app entry point
+│   │   ├── errorHandler.js          # Centralized error handling
+│   │   ├── notFound.js              # 404 fallback handler for unmatched routes
+│   │   └── logger.js                # Request logging middleware
+│   ├── seed.js                      # Database seed script
+│   └── server.js                    # Express app entry point
+├── c4gt-hub-attendance.postman_collection.json # Postman test collection
 ├── .env.example
 ├── package.json
 └── README.md
 ```
 
-## Who builds what
+---
 
-| File | Owner | Task |
-|---|---|---|
-| `src/server.js`, `src/config/db.js` | Akhil (Lead) | Express setup, MongoDB connection, folder structure, branch strategy |
-| `src/models/Member.js`, `src/seed.js` | Nikitha (A) | Schema design, validation, seed script with sample records |
-| `src/routes/members.js`, `src/controllers/memberController.js` | Devi (B) | GET `/members`, GET `/members/:id`, POST `/members` |
-| `src/routes/members.js`, `src/controllers/memberController.js` | Lithika Sraya (C) | PUT/PATCH `/members/:id`, DELETE `/members/:id` |
-| `src/middleware/errorHandler.js`, `src/middleware/notFound.js` | Sai Teja (D) | Centralized error handling, 404 fallback, Postman collection, QA |
+## 📊 Data Model: Member
 
-## Member schema (target — to be implemented by Nikitha)
+| Field | Type | Required | Allowed Values / Validation | Default |
+| :--- | :--- | :--- | :--- | :--- |
+| `name` | `String` | **Yes** | Non-empty string, trimmed | — |
+| `email` | `String` | **Yes** | Valid email format, unique, lowercase | — |
+| `role` | `String` | **Yes** | `'junior'`, `'senior'`, `'lead'` | — |
+| `team` | `String` | **Yes** | Non-empty string, trimmed | — |
+| `joinDate`| `Date` | No | Valid Date format | `Date.now` |
+| `status` | `String` | No | `'active'`, `'inactive'` | `'active'` |
+| `createdAt`/`updatedAt` | `Date` | Auto | Managed by Mongoose timestamps | Current timestamp |
 
-```
-{
-  name: String,
-  email: String,
-  role: "junior" | "senior" | "lead",
-  team: String,
-  joinDate: Date,
-  status: "active" | "inactive"
-}
-```
+---
 
-## API endpoints (target — to be implemented by Devi + Lithika Sraya)
+## 🌐 API Endpoints
 
-| Method | Endpoint | Purpose |
-|---|---|---|
-| GET | `/members` | List all members (`?role=` filter) |
-| GET | `/members/:id` | Get one member |
-| POST | `/members` | Create a member |
-| PUT/PATCH | `/members/:id` | Update a member |
-| DELETE | `/members/:id` | Delete a member |
+Base URL: `http://localhost:5000/api`
 
-See the Week 1 Task Assignment doc for full per-person task details, test
-cases, and submission checklists.
+### 1. Health Check
+* **Method**: `GET`
+* **URL**: `/api/health`
+* **Response** (`200 OK`):
+  ```json
+  {
+    "status": "ok",
+    "message": "C4GT Hub Attendance API is running",
+    "timestamp": "2026-08-24T12:00:00.000Z"
+  }
+  ```
+
+---
+
+### 2. List Members
+* **Method**: `GET`
+* **URL**: `/api/members`
+* **Query Parameters**:
+  * `role` *(optional)*: Filter by role (`junior`, `senior`, `lead`) e.g., `/api/members?role=junior`
+* **Response** (`200 OK`):
+  ```json
+  [
+    {
+      "_id": "65e9a1234567890abcdef123",
+      "name": "Alice Johnson",
+      "email": "alice.johnson@example.com",
+      "role": "lead",
+      "team": "Backend Engineering",
+      "joinDate": "2024-01-15T00:00:00.000Z",
+      "status": "active",
+      "createdAt": "2026-08-24T10:00:00.000Z",
+      "updatedAt": "2026-08-24T10:00:00.000Z"
+    }
+  ]
+  ```
+
+---
+
+### 3. Get Single Member
+* **Method**: `GET`
+* **URL**: `/api/members/:id`
+* **Response** (`200 OK`):
+  ```json
+  {
+    "_id": "65e9a1234567890abcdef123",
+    "name": "Alice Johnson",
+    "email": "alice.johnson@example.com",
+    "role": "lead",
+    "team": "Backend Engineering",
+    "joinDate": "2024-01-15T00:00:00.000Z",
+    "status": "active"
+  }
+  ```
+* **Error Responses**:
+  * `404 Not Found`: `{"message": "Member not found"}`
+
+---
+
+### 4. Create Member
+* **Method**: `POST`
+* **URL**: `/api/members`
+* **Headers**: `Content-Type: application/json`
+* **Request Body**:
+  ```json
+  {
+    "name": "Bob Smith",
+    "email": "bob.smith@example.com",
+    "role": "senior",
+    "team": "DevOps",
+    "status": "active"
+  }
+  ```
+* **Response** (`201 Created`):
+  ```json
+  {
+    "_id": "65e9a9999999990abcdef456",
+    "name": "Bob Smith",
+    "email": "bob.smith@example.com",
+    "role": "senior",
+    "team": "DevOps",
+    "status": "active",
+    "joinDate": "2026-08-24T12:00:00.000Z"
+  }
+  ```
+* **Error Responses**:
+  * `400 Bad Request` (Missing field / invalid enum / invalid email): `{"message": "Name is required, Role is required"}`
+  * `400 Bad Request` (Duplicate email): `{"message": "Email already exists. Please provide a unique email address."}`
+
+---
+
+### 5. Update Member
+* **Method**: `PUT` / `PATCH`
+* **URL**: `/api/members/:id`
+* **Headers**: `Content-Type: application/json`
+* **Request Body**:
+  ```json
+  {
+    "role": "lead",
+    "team": "Architecture & Core"
+  }
+  ```
+* **Response** (`200 OK`):
+  ```json
+  {
+    "_id": "65e9a9999999990abcdef456",
+    "name": "Bob Smith",
+    "email": "bob.smith@example.com",
+    "role": "lead",
+    "team": "Architecture & Core",
+    "status": "active"
+  }
+  ```
+* **Error Responses**:
+  * `400 Bad Request` (Validation error): `{"message": "director is not a valid role. Allowed roles: junior, senior, lead"}`
+  * `404 Not Found`: `{"message": "Member not found"}`
+
+---
+
+### 6. Delete Member
+* **Method**: `DELETE`
+* **URL**: `/api/members/:id`
+* **Response** (`200 OK`):
+  ```json
+  {
+    "message": "Member deleted successfully",
+    "data": {
+      "_id": "65e9a9999999990abcdef456",
+      "name": "Bob Smith",
+      "email": "bob.smith@example.com"
+    }
+  }
+  ```
+* **Error Responses**:
+  * `404 Not Found`: `{"message": "Member not found"}`
+
+---
+
+## 🛡️ Error Handling & Status Codes
+
+- **Centralized Error Middleware**: All errors pass through `middleware/errorHandler.js`.
+- **404 Route Fallback**: `middleware/notFound.js` handles any undefined paths (`GET /api/unknown-path`).
+
+| Status Code | Reason |
+| :--- | :--- |
+| **`200 OK`** | Request succeeded (GET, PUT, PATCH, DELETE) |
+| **`201 Created`** | New member successfully created (POST) |
+| **`400 Bad Request`** | Validation failure (missing required field, invalid regex/enum, duplicate email) |
+| **`404 Not Found`** | Resource or route not found (invalid/nonexistent ID or unmatched endpoint) |
+| **`500 Internal Server Error`** | Unhandled server exception |
+
+---
+
+## 📬 Postman Testing
+
+Import [`c4gt-hub-attendance.postman_collection.json`](file:///c:/Users/Lenovo/OneDrive/Desktop/c4gt-hub-attendance%20%281%29/c4gt-hub-attendance/backend/c4gt-hub-attendance.postman_collection.json) into Postman or Thunder Client:
+1. Open Postman / Thunder Client.
+2. Click **Import** and choose `c4gt-hub-attendance.postman_collection.json`.
+3. Set the `baseUrl` variable to `http://localhost:5000` (set by default).
+4. Run the requests sequentially to test both valid operations and invalid error handling scenarios.
