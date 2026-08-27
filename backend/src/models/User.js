@@ -32,6 +32,11 @@ const userSchema = new mongoose.Schema(
       trim: true,
       default: null,
     },
+    rollNo: {
+      type: String,
+      trim: true,
+      default: null,
+    },
     isActive: {
       type: Boolean,
       default: true,

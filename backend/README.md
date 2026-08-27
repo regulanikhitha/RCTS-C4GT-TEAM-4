@@ -72,10 +72,14 @@ npm run dev
 
 Base URL: `http://localhost:5000/api`
 
-### 1. Authentication (`/api/auth`)
-* `POST /api/auth/login`: Authenticates credentials (with coordinator whitelist check) & returns JWT.
+### 1. Authentication & Password Recovery (`/api/auth`)
+* `POST /api/auth/login`: Authenticates credentials, sends instant email login notification, and returns JWT. *(Rate-limited)*
+* `POST /api/auth/forgot-password`: Generates secure 10-minute OTP and dispatches password recovery email. *(Rate-limited, anti-enumeration)*
+* `POST /api/auth/verify-otp`: Validates OTP (with max 5 attempts tracking) & issues short-lived `resetToken`. *(Rate-limited)*
+* `POST /api/auth/reset-password`: Validates password complexity, sets new password, invalidates OTPs, & sends confirmation email. *(Rate-limited)*
 * `GET /api/auth/me`: Returns current user profile (requires `Bearer <token>`).
-* `POST /api/auth/register`: Admin-only registration of new users.
+* `POST /api/auth/register`: Admin-only registration of new users with password strength validation.
+
 
 ### 2. Member Management (`/api/members`)
 * `GET /api/members`: Lists all 81 members (supports `?role=Junior%20Developer`, `?department=`, `?isActive=true`). *(Admin, Coordinator)*

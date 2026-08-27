@@ -50,8 +50,23 @@ const memberSchema = new mongoose.Schema(
     },
     team: {
       type: String,
-      default: 'Backend Engineering',
+      default: 'General',
       trim: true,
+    },
+    rollNo: {
+      type: String,
+      trim: true,
+      default: null,
+    },
+    branch: {
+      type: String,
+      trim: true,
+      default: null,
+    },
+    phone: {
+      type: String,
+      trim: true,
+      default: null,
     },
     joinDate: {
       type: Date,
