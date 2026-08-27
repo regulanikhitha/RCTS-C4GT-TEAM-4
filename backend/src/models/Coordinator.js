@@ -19,6 +19,16 @@ const coordinatorSchema = new mongoose.Schema(
       default: 'Program Operations',
       trim: true,
     },
+    rollNo: {
+      type: String,
+      trim: true,
+      default: null,
+    },
+    phone: {
+      type: String,
+      trim: true,
+      default: null,
+    },
     isActive: {
       type: Boolean,
       default: true,
