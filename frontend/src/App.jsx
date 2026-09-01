@@ -40,8 +40,6 @@ function AppLayout() {
           <Route path="/calendar" element={<CalendarPage />} />
           <Route path="/reports" element={<Reports />} />
           <Route path="/notifications" element={<PlaceholderPage title="Notifications" />} />
-          <Route path="/profile" element={<PlaceholderPage title="Profile" />} />
-          <Route path="/settings" element={<PlaceholderPage title="Settings" />} />
           <Route path="*" element={<Navigate to="/admin-dashboard" replace />} />
         </Routes>
       </div>
