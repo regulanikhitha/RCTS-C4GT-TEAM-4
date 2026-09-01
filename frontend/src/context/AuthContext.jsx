@@ -60,10 +60,9 @@ export function AuthProvider({ children }) {
 
   const login = async (email, password) => {
     setLoading(true);
+    const normalizedEmail = email?.trim().toLowerCase() || '';
 
     try {
-      const normalizedEmail = email?.trim().toLowerCase();
-
       // Real backend login
       const { data } = await api.post('/auth/login', {
         email: normalizedEmail,
