@@ -1,26 +1,56 @@
-import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import React, { useEffect, useState } from 'react';
+import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { Eye, EyeOff, Lock, Mail } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import toast, { Toaster } from 'react-hot-toast';
 
+const roleLabelMap = {
+  admin: 'Admin',
+  coordinator: 'Coordinator',
+  student: 'Student',
+};
+
 export default function Login() {
   const { login, loading } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+  const selectedRole = location.state?.selectedRole || localStorage.getItem('c4gt_login_role') || null;
   const [form, setForm] = useState({ email: '', password: '' });
   const [showPass, setShowPass] = useState(false);
   const [error, setError] = useState('');
 
+  useEffect(() => {
+    if (selectedRole) {
+      setForm((current) => ({
+        ...current,
+        email: current.email || `${selectedRole}@c4gt.com`,
+      }));
+    }
+  }, [selectedRole]);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
+
     const result = await login(form.email, form.password);
-    if (result.ok) {
-      toast.success('Welcome back!');
-      navigate(result.redirect || '/admin-dashboard');
-    } else {
+
+    if (!result.ok) {
       setError(result.message);
+      return;
     }
+
+    const userRole = result.user?.role || form.email.split('@')[0];
+
+    if (selectedRole && userRole !== selectedRole) {
+      setError(`This login page is only for ${roleLabelMap[selectedRole] || 'the selected'} users. Please use the correct account.`);
+      localStorage.removeItem('c4gt_token');
+      localStorage.removeItem('c4gt_user');
+      return;
+    }
+
+    toast.success('Welcome back!');
+    localStorage.removeItem('c4gt_login_role');
+    navigate(result.redirect || '/admin-dashboard');
   };
 
   return (
@@ -37,8 +67,12 @@ export default function Login() {
             <span>C4GT HUB</span>
             <span style={{ fontSize: 12 }}>@KIET</span>
           </div>
-          <h1 className="login-heading">Welcome Back 👋</h1>
-          <p className="login-sub">Sign in to your C4GT Hub account</p>
+          <h1 className="login-heading">{selectedRole ? `${roleLabelMap[selectedRole] || 'Role'} Login` : 'Welcome Back 👋'}</h1>
+          <p className="login-sub">
+            {selectedRole
+              ? `Use the ${roleLabelMap[selectedRole] || 'selected'} account credentials to continue.`
+              : 'Sign in to your C4GT Hub account'}
+          </p>
         </div>
 
         {error && <div className="login-error">{error}</div>}

@@ -12,7 +12,7 @@ import { useAuth } from '../context/AuthContext';
 const TODAY = new Date().toISOString().split('T')[0];
 
 export default function Dashboard() {
-  const { user } = useAuth();
+  const { user, adminSearch } = useAuth();
   const navigate = useNavigate();
   const [stats, setStats] = useState(null);
   const [dailyData, setDailyData] = useState(null);
@@ -34,9 +34,16 @@ export default function Dashboard() {
 
   useEffect(() => { fetchData(); }, [fetchData]);
 
-  const roleRows = dailyData ? (() => {
+  const searchQuery = (adminSearch || '').trim().toLowerCase();
+  const visibleMembers = dailyData?.members?.filter((m) => {
+    if (!searchQuery) return true;
+    const haystack = [m.name, m.role, m.memberId, m.email].filter(Boolean).join(' ').toLowerCase();
+    return haystack.includes(searchQuery);
+  }) || [];
+
+  const roleRows = visibleMembers.length ? (() => {
     const roles = {};
-    (dailyData.members || []).forEach(m => {
+    visibleMembers.forEach(m => {
       const r = m.role || 'Unknown';
       if (!roles[r]) roles[r] = { total: 0, present: 0, absent: 0 };
       roles[r].total++;
@@ -45,6 +52,17 @@ export default function Dashboard() {
     });
     return Object.entries(roles);
   })() : [];
+
+  const filteredStats = searchQuery
+    ? {
+        totalMembers: visibleMembers.length,
+        present: visibleMembers.filter((m) => m.status === 'Present').length,
+        absent: visibleMembers.filter((m) => m.status === 'Absent').length,
+        attendancePercentage: visibleMembers.length
+          ? Math.round((visibleMembers.filter((m) => m.status === 'Present').length / visibleMembers.length) * 100)
+          : 0,
+      }
+    : stats;
 
   const QUICK = [
     { icon: <ClipboardList size={18} />, title: 'Mark Attendance', sub: 'Mark present or absent', color: 'purple', to: '/attendance' },
@@ -55,8 +73,8 @@ export default function Dashboard() {
 
   const chartData = roleRows.map(([role, data]) => ({ name: role, present: data.present, absent: data.absent }));
   const statusData = [
-    { name: 'Present', value: stats?.present ?? 0, color: '#0f766e' },
-    { name: 'Absent', value: stats?.absent ?? 0, color: '#e11d48' },
+    { name: 'Present', value: filteredStats?.present ?? 0, color: '#0f766e' },
+    { name: 'Absent', value: filteredStats?.absent ?? 0, color: '#e11d48' },
   ];
 
   return (
@@ -71,14 +89,14 @@ export default function Dashboard() {
         {/* Stat Cards */}
         <div className="stat-grid">
           <StatCard icon={<Users size={22} color="#2563eb" />} label="Total Members"
-            value={loading ? '–' : (stats?.totalMembers ?? 0)} sub="All Registered Members" colorClass="blue" />
+            value={loading ? '–' : (filteredStats?.totalMembers ?? 0)} sub={searchQuery ? 'Filtered results' : 'All Registered Members'} colorClass="blue" />
           <StatCard icon={<UserCheck size={22} color="#16a34a" />} label="Present Today"
-            value={loading ? '–' : (stats?.present ?? 0)} sub="Today's Attendance" colorClass="green" />
+            value={loading ? '–' : (filteredStats?.present ?? 0)} sub="Today's Attendance" colorClass="green" />
           <StatCard icon={<UserX size={22} color="#dc2626" />} label="Absent Today"
-            value={loading ? '–' : (stats?.absent ?? 0)} sub="Today's Absence" colorClass="red" />
+            value={loading ? '–' : (filteredStats?.absent ?? 0)} sub="Today's Absence" colorClass="red" />
           <StatCard icon={<Percent size={22} color="#7c3aed" />} label="Attendance %"
-            value={loading ? '–' : `${stats?.attendancePercentage ?? 0}%`}
-            sub="Today's Percentage" colorClass="purple" />
+            value={loading ? '–' : `${filteredStats?.attendancePercentage ?? 0}%`}
+            sub={searchQuery ? 'Filtered attendance' : "Today's Percentage"} colorClass="purple" />
         </div>
 
         <div className="dashboard-grid">
@@ -88,7 +106,7 @@ export default function Dashboard() {
               <CardTitle>Today's Attendance Overview</CardTitle>
               <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
                 <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>
-                  {new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric', weekday: 'long' })}
+                  {searchQuery ? `Filtered by: "${adminSearch}"` : new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric', weekday: 'long' })}
                 </span>
                 <button className="btn btn-outline btn-sm" onClick={() => navigate('/attendance')}>View All</button>
               </div>
@@ -133,10 +151,10 @@ export default function Dashboard() {
                         })}
                         <tr style={{ background: '#f8fafc' }}>
                           <td style={{ fontWeight: 700 }}>Total</td>
-                          <td style={{ fontWeight: 700 }}>{stats?.totalMembers ?? 0}</td>
-                          <td style={{ fontWeight: 700, color: '#16a34a' }}>{stats?.present ?? 0}</td>
-                          <td style={{ fontWeight: 700, color: '#dc2626' }}>{stats?.absent ?? 0}</td>
-                          <td style={{ fontWeight: 700 }}>{stats?.attendancePercentage ?? 0}%</td>
+                          <td style={{ fontWeight: 700 }}>{filteredStats?.totalMembers ?? 0}</td>
+                          <td style={{ fontWeight: 700, color: '#16a34a' }}>{filteredStats?.present ?? 0}</td>
+                          <td style={{ fontWeight: 700, color: '#dc2626' }}>{filteredStats?.absent ?? 0}</td>
+                          <td style={{ fontWeight: 700 }}>{filteredStats?.attendancePercentage ?? 0}%</td>
                           <td />
                         </tr>
                       </>
@@ -177,7 +195,7 @@ export default function Dashboard() {
                   {new Date().toLocaleDateString('en-IN', { month: 'long', year: 'numeric' })}
                 </div>
                 <div style={{ marginTop: 16, fontSize: 24, fontWeight: 800, color: 'var(--success)' }}>
-                  {stats?.attendancePercentage ?? 0}%
+                  {filteredStats?.attendancePercentage ?? 0}%
                 </div>
                 <div style={{ fontSize: 11, color: 'var(--text-muted)', fontWeight: 600, textTransform: 'uppercase' }}>Attendance Today</div>
               </CardContent>
@@ -214,7 +232,7 @@ export default function Dashboard() {
                     <ChartTooltipContent />
                   </PieChart>
                 </ResponsiveContainer>
-                <div className="donut-total"><strong>{stats?.attendancePercentage ?? 0}%</strong><span>attendance</span></div>
+                <div className="donut-total"><strong>{filteredStats?.attendancePercentage ?? 0}%</strong><span>attendance</span></div>
               </ChartContainer>
               <div className="chart-legend">
                 {statusData.map((entry) => <span key={entry.name}><i style={{ background: entry.color }} />{entry.name} <strong>{entry.value}</strong></span>)}

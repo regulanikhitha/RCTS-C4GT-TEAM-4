@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card'
 import { ChartContainer, ChartTooltipContent } from '../components/ui/chart';
 import api from '../api/axios';
 import toast from 'react-hot-toast';
+import { useAuth } from '../context/AuthContext';
 import {
   BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Cell, Legend,
 } from 'recharts';
@@ -23,6 +24,7 @@ function formatDate(d) {
 }
 
 export default function AttendanceDashboard() {
+  const { adminSearch } = useAuth();
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
   const [activeTab, setActiveTab] = useState('All Members');
   const [members, setMembers] = useState([]);
@@ -40,12 +42,28 @@ export default function AttendanceDashboard() {
         api.get(`/attendance?${params}`),
         api.get(`/attendance/stats?date=${selectedDate}`),
       ]);
-      setMembers(attRes.data.members || []);
-      setStats(statsRes.data);
+      const allMembers = attRes.data.members || [];
+      const searchQuery = (adminSearch || '').trim().toLowerCase();
+      const filtered = searchQuery
+        ? allMembers.filter((member) => {
+            const haystack = [member.name, member.role, member.memberId, member.email].filter(Boolean).join(' ').toLowerCase();
+            return haystack.includes(searchQuery);
+          })
+        : allMembers;
+      setMembers(filtered);
+      setStats({
+        ...statsRes.data,
+        totalMembers: filtered.length,
+        present: filtered.filter((m) => m.status === 'Present').length,
+        absent: filtered.filter((m) => m.status === 'Absent').length,
+        attendancePercentage: filtered.length
+          ? Math.round((filtered.filter((m) => m.status === 'Present').length / filtered.length) * 100)
+          : 0,
+      });
     } catch (_) {
       setMembers([]);
     } finally { setLoading(false); }
-  }, [selectedDate, activeTab]);
+  }, [selectedDate, activeTab, adminSearch]);
 
   useEffect(() => { fetchAttendance(); }, [fetchAttendance]);
 
@@ -137,7 +155,7 @@ export default function AttendanceDashboard() {
             </div>
           </div>
           <div style={{ fontSize: 13, color: 'var(--text-muted)', marginTop: 8 }}>
-            Attendance for <strong>{formatDate(selectedDate)}</strong>
+            {adminSearch ? <span>Filtered by: <strong>"{adminSearch}"</strong></span> : <span>Attendance for <strong>{formatDate(selectedDate)}</strong></span>}
           </div>
         </div>
 

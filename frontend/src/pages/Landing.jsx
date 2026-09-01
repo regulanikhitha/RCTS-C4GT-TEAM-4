@@ -7,16 +7,22 @@ const sectionIds = ['home', 'about', 'roles', 'contact'];
 export default function Landing() {
   const navigate = useNavigate();
   const [activeSection, setActiveSection] = useState('home');
+  const [showLoginPopup, setShowLoginPopup] = useState(false);
 
   const navItems = useMemo(
     () => [
       { id: 'home', label: 'Home' },
-      { id: 'about', label: 'About' },
       { id: 'roles', label: 'Roles' },
       { id: 'contact', label: 'Contact' },
     ],
     []
   );
+
+  const loginOptions = [
+    { role: 'admin', label: 'Admin Login', route: '/admin-dashboard', name: 'Admin User' },
+    { role: 'coordinator', label: 'Coordinator Login', route: '/coordinator-dashboard', name: 'Coordinator User' },
+    { role: 'student', label: 'Student Login', route: '/student-dashboard', name: 'Student User' },
+  ];
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -47,25 +53,43 @@ export default function Landing() {
     document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   };
 
-  const goToDashboard = () => {
-    const demoUser = {
-      name: 'Admin User',
-      email: 'admin@c4gt.com',
-      role: 'admin',
-    };
+  const loginAsRole = (role, route, name) => {
+    localStorage.setItem('c4gt_login_role', role);
+    setShowLoginPopup(false);
+    navigate('/login', { state: { selectedRole: role, roleLabel: labelFromRole(role) } });
+  };
 
-    localStorage.setItem('c4gt_user', JSON.stringify(demoUser));
-    localStorage.setItem('c4gt_token', 'demo-admin-token');
-    toast.success('Welcome back!');
-    navigate('/admin-dashboard');
+  const labelFromRole = (role) => {
+    if (role === 'admin') return 'Admin';
+    if (role === 'coordinator') return 'Coordinator';
+    return 'Student';
+  };
+
+  const goToDashboard = () => {
+    setShowLoginPopup(true);
   };
 
   const handleLogin = () => {
-    goToDashboard();
+    setShowLoginPopup(true);
   };
 
   const handleDashboardCardClick = (route) => {
-    goToDashboard();
+    const routeMap = {
+      '/admin-dashboard': 'admin',
+      '/coordinator-dashboard': 'coordinator',
+      '/student-dashboard': 'student',
+      '/permission-dashboard': 'admin',
+    };
+
+    const role = routeMap[route] || 'admin';
+    const demoUser = {
+      name: `${labelFromRole(role)} User`,
+      email: `${role}@c4gt.com`,
+      role,
+    };
+
+    localStorage.setItem('c4gt_user', JSON.stringify(demoUser));
+    localStorage.setItem('c4gt_token', `demo-${role}-token`);
     navigate(route);
   };
 
@@ -79,24 +103,92 @@ export default function Landing() {
     <div className="lp-page">
       <div className="lp-toast" id="lpToast" />
 
-      <nav className="lp-side-nav" aria-label="Section navigation">
-        {navItems.map(({ id, label }) => (
-          <button
-            key={id}
-            type="button"
-            className={`lp-side-link ${activeSection === id ? 'active' : ''}`}
-            data-target={id}
-            onClick={() => scrollToSection(id)}
-            aria-label={label}
+      {showLoginPopup && (
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            background: 'rgba(15, 23, 42, 0.45)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 1000,
+            padding: '1rem',
+          }}
+          onClick={() => setShowLoginPopup(false)}
+        >
+          <div
+            role="dialog"
+            aria-modal="true"
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              width: '100%',
+              maxWidth: 440,
+              background: '#ffffff',
+              borderRadius: 18,
+              boxShadow: '0 20px 50px rgba(15, 23, 42, 0.2)',
+              border: '1px solid #e2e8f0',
+              padding: '1.5rem',
+            }}
           >
-            <span className="lp-side-dot" />
-            <span className="lp-side-label">{label}</span>
-          </button>
-        ))}
-      </nav>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 18 }}>
+              <div>
+                <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#6366f1' }}>
+                  Choose role
+                </div>
+                <h3 style={{ marginTop: 6, fontSize: 26, fontWeight: 800, color: '#0f172a' }}>Login as</h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowLoginPopup(false)}
+                style={{
+                  border: '1px solid #e2e8f0',
+                  background: '#fff',
+                  borderRadius: 10,
+                  width: 36,
+                  height: 36,
+                  fontSize: 20,
+                  color: '#475569',
+                  cursor: 'pointer',
+                }}
+                aria-label="Close login popup"
+              >
+                ×
+              </button>
+            </div>
+
+            <div style={{ display: 'grid', gap: 12 }}>
+              {loginOptions.map(({ role, label, route, name }) => (
+                <button
+                  key={role}
+                  type="button"
+                  onClick={() => loginAsRole(role, route, name)}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    width: '100%',
+                    padding: '0.9rem 1rem',
+                    borderRadius: 12,
+                    border: '1px solid #e2e8f0',
+                    background: '#f8fafc',
+                    color: '#0f172a',
+                    fontSize: 15,
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                  }}
+                >
+                  <span>{label}</span>
+                  <span style={{ color: '#4338ca', fontSize: 18 }}>→</span>
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
 
       <header className="lp-nav">
-        <button type="button" className="lp-brand" onClick={goToDashboard}>
+        <button type="button" className="lp-brand" onClick={handleLogin}>
           <div className="lp-brand-badge">
             <svg viewBox="0 0 40 40" width="36" height="36" fill="none" aria-hidden="true">
               <circle cx="20" cy="20" r="20" fill="url(#lp-grad)" />
@@ -116,9 +208,23 @@ export default function Landing() {
           </span>
         </button>
 
-        <nav className="lp-nav-links" aria-label="Main menu">
-          {navItems.slice(1).map(({ id, label }) => (
-            <button key={id} type="button" className="lp-nav-link" onClick={() => scrollToSection(id)}>
+        <nav className="lp-nav-links" aria-label="Main menu" style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', flexWrap: 'wrap' }}>
+          {navItems.map(({ id, label }) => (
+            <button
+              key={id}
+              type="button"
+              className="lp-nav-link"
+              onClick={() => scrollToSection(id)}
+              style={{
+                background: activeSection === id ? 'rgba(67, 56, 202, 0.08)' : 'transparent',
+                color: activeSection === id ? '#4338ca' : '#475569',
+                border: activeSection === id ? '1px solid rgba(67,56,202,0.18)' : '1px solid transparent',
+                borderRadius: '999px',
+                padding: '0.5rem 0.8rem',
+                fontWeight: 600,
+                transition: 'all 0.2s ease',
+              }}
+            >
               {label}
             </button>
           ))}
@@ -227,37 +333,6 @@ export default function Landing() {
                   <span>vs last week</span>
                 </div>
               </div>
-            </div>
-          </div>
-        </section>
-
-        <section className="lp-section" id="about">
-          <div className="lp-section-head">
-            <span className="lp-kicker">What&apos;s inside</span>
-            <h2>Everything a cohort needs, nothing it doesn&apos;t</h2>
-            <p>Four modules cover the day-to-day of running C4GT Hub — from marking who showed up to explaining why someone didn&apos;t.</p>
-          </div>
-
-          <div className="lp-grid-4">
-            <div className="lp-feature">
-              <div className="lp-feature-icon" style={{ background: '#4338ca' }}>✓</div>
-              <h3>Attendance Tracking</h3>
-              <p>Mark and review daily attendance across all 9 teams in a couple of clicks.</p>
-            </div>
-            <div className="lp-feature">
-              <div className="lp-feature-icon" style={{ background: '#f59e0b' }}>📄</div>
-              <h3>Permission Portal</h3>
-              <p>Members request leave; coordinators and admins approve or reject with a paper trail.</p>
-            </div>
-            <div className="lp-feature">
-              <div className="lp-feature-icon" style={{ background: '#ef4444' }}>👥</div>
-              <h3>Member Directory</h3>
-              <p>Every intern, senior developer and lead in one searchable, filterable roster.</p>
-            </div>
-            <div className="lp-feature">
-              <div className="lp-feature-icon" style={{ background: '#8b5cf6' }}>📊</div>
-              <h3>Reports &amp; Analytics</h3>
-              <p>Team-wise attendance charts and exportable PDF reports, generated on demand.</p>
             </div>
           </div>
         </section>

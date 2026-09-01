@@ -8,11 +8,11 @@ import { useAuth } from '../context/AuthContext';
 const ROLES = ['Junior Developer', 'Senior Developer', 'User', 'JD', 'SD', 'LEAD'];
 
 export default function Members() {
-  const { user } = useAuth();
+  const { user, adminSearch, setAdminSearch } = useAuth();
   const isAdmin = user?.role === 'admin';
+  const canSearch = isAdmin;
   const [members, setMembers] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [search, setSearch] = useState('');
   const [roleFilter, setRoleFilter] = useState('');
   const [teamFilter, setTeamFilter] = useState('');
   const [departmentFilter, setDepartmentFilter] = useState('');
@@ -34,10 +34,14 @@ export default function Members() {
 
   useEffect(() => { fetchMembers(); }, [fetchMembers]);
 
+  const search = (adminSearch || '').trim();
+
   const filtered = members.filter(m => {
-    const matchSearch = m.name?.toLowerCase().includes(search.toLowerCase()) ||
-                       m.memberId?.toLowerCase().includes(search.toLowerCase()) ||
-                       m.email?.toLowerCase().includes(search.toLowerCase());
+    const normalizedSearch = search.toLowerCase();
+    const matchSearch = !canSearch || !normalizedSearch ||
+      m.name?.toLowerCase().includes(normalizedSearch) ||
+      m.memberId?.toLowerCase().includes(normalizedSearch) ||
+      m.email?.toLowerCase().includes(normalizedSearch);
     const matchRole = !roleFilter || m.role?.toLowerCase().includes(roleFilter.toLowerCase());
     const matchTeam = !teamFilter || m.team === teamFilter;
     const matchDept = !departmentFilter || m.department === departmentFilter;
@@ -101,20 +105,6 @@ export default function Members() {
         {/* Filters */}
         <div className="card" style={{ marginBottom: 20, padding: '16px 20px' }}>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 16 }}>
-            <div className="form-group" style={{ marginBottom: 0 }}>
-              <label className="form-label" style={{ fontSize: 12 }}>Search</label>
-              <div style={{ position: 'relative' }}>
-                <Search size={14} style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
-                <input
-                  type="text"
-                  className="form-input"
-                  style={{ paddingLeft: 32, fontSize: 13 }}
-                  placeholder="Name, ID, email…"
-                  value={search}
-                  onChange={e => { setSearch(e.target.value); setPage(1); }}
-                />
-              </div>
-            </div>
             <div className="form-group" style={{ marginBottom: 0 }}>
               <label className="form-label" style={{ fontSize: 12 }}>Role</label>
               <select

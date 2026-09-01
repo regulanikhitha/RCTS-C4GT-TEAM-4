@@ -4,10 +4,12 @@ import TopBar from '../components/TopBar';
 import PermissionModal from '../components/PermissionModal';
 import api from '../api/axios';
 import toast from 'react-hot-toast';
+import { useAuth } from '../context/AuthContext';
 
 const TABS = ['All Requests', 'My Requests'];
 
 export default function PermissionDashboard() {
+  const { adminSearch } = useAuth();
   const [activeTab, setActiveTab] = useState('All Requests');
   const [permissions, setPermissions] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -31,15 +33,22 @@ export default function PermissionDashboard() {
 
   useEffect(() => { fetchPermissions(); }, [fetchPermissions]);
 
+  const searchQuery = (adminSearch || '').trim().toLowerCase();
+  const filteredPermissions = permissions.filter((p) => {
+    if (!searchQuery) return true;
+    const haystack = [p.memberName, p.role, p.permissionType, p.status, p._id].filter(Boolean).join(' ').toLowerCase();
+    return haystack.includes(searchQuery);
+  });
+
   const counts = {
-    pending: permissions.filter((p) => p.status === 'pending').length,
-    approved: permissions.filter((p) => p.status === 'approved').length,
-    rejected: permissions.filter((p) => p.status === 'rejected').length,
-    total: permissions.length,
+    pending: filteredPermissions.filter((p) => p.status === 'pending').length,
+    approved: filteredPermissions.filter((p) => p.status === 'approved').length,
+    rejected: filteredPermissions.filter((p) => p.status === 'rejected').length,
+    total: filteredPermissions.length,
   };
 
-  const paginated = permissions.slice((page - 1) * PER_PAGE, page * PER_PAGE);
-  const totalPages = Math.ceil(permissions.length / PER_PAGE);
+  const paginated = filteredPermissions.slice((page - 1) * PER_PAGE, page * PER_PAGE);
+  const totalPages = Math.ceil(filteredPermissions.length / PER_PAGE);
 
   const formatDateRange = (from, to) => {
     const f = from ? new Date(from).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : '–';

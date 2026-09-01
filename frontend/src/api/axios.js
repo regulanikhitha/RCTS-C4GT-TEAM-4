@@ -12,14 +12,16 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
-// Global 401 → redirect to login
+// Keep the signed-in session stable during normal dashboard navigation.
+// Only redirect when there is no saved login session at all.
 api.interceptors.response.use(
   (res) => res,
   (err) => {
     if (err.response?.status === 401) {
-      localStorage.removeItem('c4gt_token');
-      localStorage.removeItem('c4gt_user');
-      window.location.href = '/login';
+      const hasStoredSession = Boolean(localStorage.getItem('c4gt_token') || localStorage.getItem('c4gt_user'));
+      if (!hasStoredSession) {
+        window.location.href = '/login';
+      }
     }
     return Promise.reject(err);
   }
