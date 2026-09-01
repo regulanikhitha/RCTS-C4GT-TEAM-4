@@ -374,7 +374,6 @@ export default function Landing() {
                 <li>View their own attendance history</li>
                 <li>Submit permission requests</li>
                 <li>Check the shared team calendar</li>
-                <li>Keep their profile up to date</li>
               </ul>
             </div>
           </div>

@@ -2,7 +2,7 @@ import React from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard, UserCheck, FileText, Users,
-  Calendar, BarChart2, Bell, User, Settings, LogOut,
+  Calendar, BarChart2, Bell, LogOut,
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
@@ -16,8 +16,6 @@ const NAV = [
   { label: 'Calendar', icon: Calendar, to: '/calendar' },
   { label: 'Reports', icon: BarChart2, to: '/reports' },
   { label: 'Notifications', icon: Bell, to: '/notifications' },
-  { label: 'Profile', icon: User, to: '/profile' },
-  { label: 'Settings', icon: Settings, to: '/settings' },
 ];
 
 export default function Sidebar() {

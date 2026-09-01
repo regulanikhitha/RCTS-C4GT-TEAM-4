@@ -1,5 +1,5 @@
 import React from 'react';
-import { Search, Bell, ChevronDown } from 'lucide-react';
+import { Search, Bell } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
@@ -49,7 +49,6 @@ export default function TopBar({ title }) {
             <div className="avatar-name">{user?.name || 'User'}</div>
             <div className="avatar-role" style={{ textTransform: 'capitalize' }}>{user?.role || ''}</div>
           </div>
-          <ChevronDown size={14} style={{ color: 'var(--text-muted)' }} />
         </div>
       </div>
     </header>
