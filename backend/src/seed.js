@@ -125,9 +125,11 @@ const roleMap = {
   JD:   { memberRole: 'Junior Developer', department: 'Junior Developer' },
 };
 
-const seedDatabase = async () => {
+const seedDatabase = async (shouldExit = false) => {
   try {
-    await connectDB();
+    if (mongoose.connection.readyState !== 1) {
+      await connectDB();
+    }
     console.log('🌱 Connected to database for seeding...');
 
     // Clear existing records
@@ -283,15 +285,24 @@ const seedDatabase = async () => {
     });
     console.log('=============================================\n');
 
-    await mongoose.connection.close();
-    process.exit(0);
+    if (shouldExit) {
+      await mongoose.connection.close();
+      process.exit(0);
+    }
   } catch (error) {
     console.error(`❌ Seeding failed: ${error.message}`);
-    if (mongoose.connection.readyState !== 0) {
-      await mongoose.connection.close();
+    if (shouldExit) {
+      if (mongoose.connection.readyState !== 0) {
+        await mongoose.connection.close();
+      }
+      process.exit(1);
     }
-    process.exit(1);
+    throw error;
   }
 };
 
-seedDatabase();
+if (require.main === module) {
+  seedDatabase(true);
+}
+
+module.exports = { seedDatabase };
