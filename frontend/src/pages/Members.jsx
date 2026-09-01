@@ -37,16 +37,78 @@ export default function Members() {
   const search = (adminSearch || '').trim();
 
   const filtered = members.filter(m => {
-    const normalizedSearch = search.toLowerCase();
-    const matchSearch = !canSearch || !normalizedSearch ||
-      m.name?.toLowerCase().includes(normalizedSearch) ||
-      m.memberId?.toLowerCase().includes(normalizedSearch) ||
-      m.email?.toLowerCase().includes(normalizedSearch);
-    const matchRole = !roleFilter || m.role?.toLowerCase().includes(roleFilter.toLowerCase());
-    const matchTeam = !teamFilter || m.team === teamFilter;
-    const matchDept = !departmentFilter || m.department === departmentFilter;
-    return matchSearch && matchRole && matchTeam && matchDept;
+    // -------------------------
+    // SEARCH FILTER
+    // -------------------------
+    const searchValue = search.toLowerCase();
+    const matchSearch =
+      !canSearch ||
+      !searchValue ||
+      (m.name || '').toLowerCase().includes(searchValue) ||
+      (m.memberId || '').toLowerCase().includes(searchValue) ||
+      (m.email || '').toLowerCase().includes(searchValue);
+
+    // -------------------------
+    // ROLE FILTER
+    // -------------------------
+    const roleAliases = {
+      'JD': 'junior developer',
+      'SD': 'senior developer',
+      'LEAD': 'lead'
+    };
+
+    const normalizedMemberRole =
+      (m.role || '').trim().toLowerCase();
+
+    const normalizedSelectedRole =
+      (roleAliases[roleFilter] || roleFilter || '')
+        .trim()
+        .toLowerCase();
+
+    const matchRole =
+      !normalizedSelectedRole ||
+      normalizedMemberRole === normalizedSelectedRole;
+
+    // -------------------------
+    // TEAM FILTER
+    // -------------------------
+    const normalizedMemberTeam =
+      (m.team || '').trim().toLowerCase();
+
+    const normalizedSelectedTeam =
+      (teamFilter || '').trim().toLowerCase();
+
+    const matchTeam =
+      !normalizedSelectedTeam ||
+      normalizedMemberTeam === normalizedSelectedTeam;
+
+    // -------------------------
+    // DEPARTMENT FILTER
+    // -------------------------
+    const normalizedMemberDepartment =
+      (m.department || '').trim().toLowerCase();
+
+    const normalizedSelectedDepartment =
+      (departmentFilter || '').trim().toLowerCase();
+
+    const matchDepartment =
+      !normalizedSelectedDepartment ||
+      normalizedMemberDepartment === normalizedSelectedDepartment;
+
+    // -------------------------
+    // FINAL RESULT
+    // -------------------------
+    return (
+      matchSearch &&
+      matchRole &&
+      matchTeam &&
+      matchDepartment
+    );
   });
+
+  useEffect(() => {
+    setPage(1);
+  }, [search, roleFilter, teamFilter, departmentFilter]);
 
   const totalPages = Math.ceil(filtered.length / PER_PAGE);
   const paginated = filtered.slice((page - 1) * PER_PAGE, page * PER_PAGE);
