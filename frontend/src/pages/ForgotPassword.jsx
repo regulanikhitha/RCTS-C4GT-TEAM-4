@@ -64,8 +64,7 @@ export default function ForgotPassword() {
 
         <div className="login-logo">
           <div className="login-logo-badge">
-            <span>C4GT HUB</span>
-            <span style={{ fontSize: 12 }}>@KIET</span>
+            <img src="/logo.svg" width="56" height="56" alt="C4GT HUB logo" />
           </div>
           <h1 className="login-heading">
             {step === 1 ? 'Forgot Password?' : step === 2 ? 'Verify OTP' : 'New Password'}

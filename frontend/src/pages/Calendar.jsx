@@ -1,13 +1,34 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import TopBar from '../components/TopBar';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+import api from '../api/axios';
+import { useAuth } from '../context/AuthContext';
 
 const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
 
 export default function CalendarPage() {
+  const { user } = useAuth();
   const today = new Date();
   const [current, setCurrent] = useState({ month: today.getMonth(), year: today.getFullYear() });
+  const [attendanceByDate, setAttendanceByDate] = useState({});
+
+  useEffect(() => {
+    if (user?.role !== 'student') return;
+
+    const studentIdentifier = user.memberId || user.email;
+    if (!studentIdentifier) return;
+
+    api.get(`/attendance/member/${encodeURIComponent(studentIdentifier)}`)
+      .then(({ data }) => {
+        const recordsByDate = (data.records || []).reduce((records, record) => {
+          records[record.date] = record.status;
+          return records;
+        }, {});
+        setAttendanceByDate(recordsByDate);
+      })
+      .catch(() => setAttendanceByDate({}));
+  }, [user]);
 
   const firstDay = new Date(current.year, current.month, 1).getDay();
   const daysInMonth = new Date(current.year, current.month + 1, 0).getDate();
@@ -38,6 +59,15 @@ export default function CalendarPage() {
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 4 }}>
               {cells.map((day, i) => {
                 const isToday = day === today.getDate() && current.month === today.getMonth() && current.year === today.getFullYear();
+                const dateKey = day
+                  ? `${current.year}-${String(current.month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`
+                  : null;
+                const attendanceStatus = dateKey ? attendanceByDate[dateKey] : null;
+                const attendanceColor = attendanceStatus === 'Present'
+                  ? '#16a34a'
+                  : attendanceStatus === 'Absent'
+                    ? '#dc2626'
+                    : null;
                 return (
                   <div key={i} style={{
                     aspectRatio: '1',
@@ -45,18 +75,25 @@ export default function CalendarPage() {
                     borderRadius: '50%',
                     fontSize: 13, fontWeight: day ? 500 : 400,
                     cursor: day ? 'pointer' : 'default',
-                    background: isToday ? 'var(--primary)' : 'transparent',
-                    color: isToday ? 'white' : day ? 'var(--text-primary)' : 'transparent',
+                    background: attendanceColor || (isToday ? 'var(--primary)' : 'transparent'),
+                    color: attendanceColor || isToday ? 'white' : day ? 'var(--text-primary)' : 'transparent',
                     transition: 'all 0.15s',
                   }}
-                    onMouseEnter={e => { if (day && !isToday) e.currentTarget.style.background = 'var(--bg)'; }}
-                    onMouseLeave={e => { if (day && !isToday) e.currentTarget.style.background = 'transparent'; }}
+                    onMouseEnter={e => { if (day && !attendanceColor && !isToday) e.currentTarget.style.background = 'var(--bg)'; }}
+                    onMouseLeave={e => { if (day && !attendanceColor && !isToday) e.currentTarget.style.background = 'transparent'; }}
+                    title={attendanceStatus ? `${attendanceStatus} on ${dateKey}` : undefined}
                   >
                     {day}
                   </div>
                 );
               })}
             </div>
+            {user?.role === 'student' && (
+              <div style={{ display: 'flex', justifyContent: 'center', gap: 16, marginTop: 18, fontSize: 12, color: 'var(--text-muted)' }}>
+                <span><span style={{ display: 'inline-block', width: 10, height: 10, borderRadius: '50%', background: '#16a34a', marginRight: 6 }} />Present</span>
+                <span><span style={{ display: 'inline-block', width: 10, height: 10, borderRadius: '50%', background: '#dc2626', marginRight: 6 }} />Absent</span>
+              </div>
+            )}
           </div>
         </div>
       </div>

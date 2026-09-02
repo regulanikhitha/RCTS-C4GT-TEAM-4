@@ -2,29 +2,32 @@ import React from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard,
-   UserCheck, 
-   FileText, 
-   Users,
+  UserCheck,
+  FileText,
+  Users,
   Calendar,
-  Bell, 
+  BarChart2,
+  Bell,
   LogOut,
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 const NAV = [
-  { label: 'Admin Dashboard', icon: LayoutDashboard, to: '/admin-dashboard' },
-  { label: 'Coordinator Dashboard', icon: UserCheck, to: '/coordinator-dashboard' },
-  { label: 'Student Dashboard', icon: Users, to: '/student-dashboard' },
-  { label: 'Permission Dashboard', icon: FileText, to: '/permission-dashboard' },
-  { label: 'Attendance', icon: UserCheck, to: '/attendance' },
-  { label: 'Members', icon: Users, to: '/members' },
-  { label: 'Calendar', icon: Calendar, to: '/calendar' },
-  { label: 'Notifications', icon: Bell, to: '/notifications' },
+  { label: 'Admin Dashboard', icon: LayoutDashboard, to: '/admin-dashboard', roles: ['admin'] },
+  { label: 'Coordinator Dashboard', icon: UserCheck, to: '/coordinator-dashboard', roles: ['coordinator'] },
+  { label: 'Student Dashboard', icon: Users, to: '/student-dashboard', roles: ['student', 'admin', 'coordinator'] },
+  { label: 'Permission Dashboard', icon: FileText, to: '/permission-dashboard', roles: ['student', 'admin', 'coordinator'] },
+  { label: 'Attendance', icon: UserCheck, to: '/attendance', roles: ['admin', 'coordinator'] },
+  { label: 'Members', icon: Users, to: '/members', roles: ['admin', 'coordinator'] },
+  { label: 'Calendar', icon: Calendar, to: '/calendar', roles: ['student', 'admin', 'coordinator'] },
+  { label: 'Reports', icon: BarChart2, to: '/reports', roles: ['student', 'admin', 'coordinator'] },
+  { label: 'Notifications', icon: Bell, to: '/notifications', roles: ['student', 'admin', 'coordinator'] },
 ];
 
 export default function Sidebar() {
-  const { logout } = useAuth();
+  const { logout, user } = useAuth();
   const navigate = useNavigate();
+  const visibleNav = NAV.filter((item) => item.roles.includes(user?.role || 'admin'));
 
   const handleLogout = () => {
     logout();
@@ -32,7 +35,8 @@ export default function Sidebar() {
   };
 
   const handleLogoClick = () => {
-    navigate('/admin-dashboard');
+    const defaultRoute = user?.role === 'student' ? '/student-dashboard' : '/admin-dashboard';
+    navigate(defaultRoute);
   };
 
   return (
@@ -40,18 +44,7 @@ export default function Sidebar() {
       {/* Logo — clicking navigates to Permission Portal */}
       <div className="sidebar-logo" onClick={handleLogoClick} title="Go to Permission Portal">
         <div className="sidebar-logo-icon">
-          <svg viewBox="0 0 40 40" width="28" height="28" fill="none">
-            <circle cx="20" cy="20" r="20" fill="url(#lg1)"/>
-            <text x="50%" y="55%" textAnchor="middle" dominantBaseline="middle"
-              fontSize="13" fontWeight="900" fill="white">C4</text>
-            <defs>
-              <linearGradient id="lg1" x1="0" y1="0" x2="40" y2="40" gradientUnits="userSpaceOnUse">
-                <stop stopColor="#f59e0b"/>
-                <stop offset="0.5" stopColor="#ef4444"/>
-                <stop offset="1" stopColor="#8b5cf6"/>
-              </linearGradient>
-            </defs>
-          </svg>
+          <img src="/logo.svg" width="28" height="28" alt="C4GT HUB logo" />
         </div>
         <div className="sidebar-logo-text">
           <span className="brand">C4GT HUB</span>
@@ -60,7 +53,7 @@ export default function Sidebar() {
       </div>
 
       <nav className="sidebar-nav">
-        {NAV.map(({ label, icon: Icon, to }) => (
+        {visibleNav.map(({ label, icon: Icon, to }) => (
           <NavLink
             key={to}
             to={to}

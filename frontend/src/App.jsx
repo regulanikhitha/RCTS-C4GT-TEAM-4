@@ -19,20 +19,53 @@ import Members from './pages/Members';
 import CalendarPage from './pages/Calendar';
 import Reports from './pages/Reports';
 
+function getDefaultDashboardPath(role) {
+  if (role === 'student') return '/student-dashboard';
+  if (role === 'coordinator') return '/coordinator-dashboard';
+  return '/admin-dashboard';
+}
+
 function AppLayout() {
   const { user } = useAuth();
 
   if (!user) return null;
+
+  const defaultDashboardPath = getDefaultDashboardPath(user.role);
 
   return (
     <div className="app-shell">
       <Sidebar />
       <div className="main-area">
         <Routes>
-          <Route path="/dashboard" element={<Navigate to="/admin-dashboard" replace />} />
-          <Route path="/admin-dashboard" element={<Dashboard />} />
-          <Route path="/coordinator-dashboard" element={<CoordinatorDashboard />} />
-          <Route path="/student-dashboard" element={<StudentDashboard />} />
+          <Route path="/dashboard" element={<Navigate to={defaultDashboardPath} replace />} />
+          <Route
+            path="/admin-dashboard"
+            element={
+              user.role === 'student'
+                ? <Navigate to="/student-dashboard" replace />
+                : user.role === 'admin'
+                  ? <Dashboard />
+                  : <Navigate to="/coordinator-dashboard" replace />
+            }
+          />
+          <Route
+            path="/coordinator-dashboard"
+            element={
+              user.role === 'student'
+                ? <Navigate to="/student-dashboard" replace />
+                : user.role === 'coordinator'
+                  ? <CoordinatorDashboard />
+                  : <Navigate to="/admin-dashboard" replace />
+            }
+          />
+          <Route
+            path="/student-dashboard"
+            element={
+              user.role === 'student'
+                ? <StudentDashboard />
+                : <Navigate to={defaultDashboardPath} replace />
+            }
+          />
           <Route path="/permission-dashboard" element={<PermissionDashboard />} />
           <Route path="/attendance" element={<AttendanceDashboard />} />
           <Route path="/permissions" element={<PermissionPortal />} />
@@ -40,7 +73,7 @@ function AppLayout() {
           <Route path="/calendar" element={<CalendarPage />} />
           <Route path="/reports" element={<Reports />} />
           <Route path="/notifications" element={<PlaceholderPage title="Notifications" />} />
-          <Route path="*" element={<Navigate to="/admin-dashboard" replace />} />
+          <Route path="*" element={<Navigate to={defaultDashboardPath} replace />} />
         </Routes>
       </div>
     </div>

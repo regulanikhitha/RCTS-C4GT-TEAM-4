@@ -28,6 +28,11 @@ export default function Login() {
     }
   }, [selectedRole]);
 
+  const handleCancel = () => {
+    localStorage.removeItem('c4gt_login_role');
+    navigate('/');
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
@@ -64,8 +69,7 @@ export default function Login() {
       <div className="login-card">
         <div className="login-logo">
           <div className="login-logo-badge">
-            <span>C4GT HUB</span>
-            <span style={{ fontSize: 12 }}>@KIET</span>
+            <img src="/logo.svg" width="56" height="56" alt="C4GT HUB logo" />
           </div>
           <h1 className="login-heading">{selectedRole ? `${roleLabelMap[selectedRole] || 'Role'} Login` : 'Welcome Back 👋'}</h1>
           <p className="login-sub">
@@ -122,9 +126,23 @@ export default function Login() {
             </div>
           </div>
 
-          <button type="submit" className="btn btn-primary login-submit" disabled={loading}>
-            {loading ? 'Signing in…' : 'Sign In'}
-          </button>
+          <div style={{ display: 'grid', gap: 10, marginTop: 12 }}>
+            <button type="submit" className="btn btn-primary login-submit" disabled={loading}>
+              {loading ? 'Signing in…' : 'Sign In'}
+            </button>
+            <button
+              type="button"
+              className="btn btn-secondary"
+              onClick={handleCancel}
+              style={{
+                background: '#f8fafc',
+                color: '#334155',
+                border: '1px solid #e2e8f0',
+              }}
+            >
+              Cancel
+            </button>
+          </div>
         </form>
 
         <p style={{ textAlign: 'center', fontSize: 12, color: 'var(--text-muted)', marginTop: 20 }}>

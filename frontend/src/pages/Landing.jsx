@@ -150,8 +150,10 @@ export default function Landing() {
                   fontSize: 20,
                   color: '#475569',
                   cursor: 'pointer',
+                  lineHeight: 1,
                 }}
                 aria-label="Close login popup"
+                title="Close"
               >
                 ×
               </button>
@@ -190,17 +192,7 @@ export default function Landing() {
       <header className="lp-nav">
         <button type="button" className="lp-brand" onClick={handleLogin}>
           <div className="lp-brand-badge">
-            <svg viewBox="0 0 40 40" width="36" height="36" fill="none" aria-hidden="true">
-              <circle cx="20" cy="20" r="20" fill="url(#lp-grad)" />
-              <text x="50%" y="55%" textAnchor="middle" dominantBaseline="middle" fontSize="13" fontWeight="900" fill="white">C4</text>
-              <defs>
-                <linearGradient id="lp-grad" x1="0" y1="0" x2="40" y2="40" gradientUnits="userSpaceOnUse">
-                  <stop stopColor="#f59e0b" />
-                  <stop offset="0.5" stopColor="#ef4444" />
-                  <stop offset="1" stopColor="#8b5cf6" />
-                </linearGradient>
-              </defs>
-            </svg>
+            <img src="/logo.svg" width="36" height="36" alt="C4GT HUB logo" />
           </div>
           <span className="lp-brand-text">
             <span className="brand">C4GT HUB</span>
@@ -436,17 +428,7 @@ export default function Landing() {
       <footer className="lp-footer">
         <div className="lp-footer-inner">
           <div className="lp-footer-brand">
-            <svg viewBox="0 0 40 40" width="28" height="28" fill="none" aria-hidden="true">
-              <circle cx="20" cy="20" r="20" fill="url(#lp-grad-2)" />
-              <text x="50%" y="55%" textAnchor="middle" dominantBaseline="middle" fontSize="13" fontWeight="900" fill="white">C4</text>
-              <defs>
-                <linearGradient id="lp-grad-2" x1="0" y1="0" x2="40" y2="40" gradientUnits="userSpaceOnUse">
-                  <stop stopColor="#f59e0b" />
-                  <stop offset="0.5" stopColor="#ef4444" />
-                  <stop offset="1" stopColor="#8b5cf6" />
-                </linearGradient>
-              </defs>
-            </svg>
+            <img src="/logo.svg" width="28" height="28" alt="C4GT HUB logo" />
             C4GT HUB @KIET
           </div>
           <small>© 2026 C4GT Hub Attendance Management System</small>

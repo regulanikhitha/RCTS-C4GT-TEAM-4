@@ -52,8 +52,7 @@ export default function PermissionModal({ onClose, onSuccess }) {
         {/* Header */}
         <div className="modal-header">
           <div className="modal-logo-badge">
-            <span>C4GT HUB</span>
-            <span>@KIET</span>
+            <img src="/logo.svg" width="44" height="44" alt="C4GT HUB logo" />
           </div>
           <div>
             <div className="modal-title">Permission Request Form</div>
