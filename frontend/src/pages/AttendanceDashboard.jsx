@@ -59,12 +59,22 @@ function formatDate(d) {
   });
 }
 
+function getTodayString() {
+  const d = new Date();
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
 export default function AttendanceDashboard() {
   const { adminSearch } = useAuth();
 
-  const [selectedDate, setSelectedDate] = useState(
-    new Date().toISOString().split('T')[0]
-  );
+  const todayStr = getTodayString();
+  const [selectedDate, setSelectedDate] = useState(todayStr);
+  const isToday = selectedDate === todayStr;
+  const isPastDate = selectedDate < todayStr;
+  const canMarkAttendance = isToday;
 
   const [selectedTeam, setSelectedTeam] = useState('All Teams');
   const [activeTab, setActiveTab] = useState('All Members');
@@ -170,6 +180,10 @@ export default function AttendanceDashboard() {
 
   // Update individual attendance
   const updateStatus = async (member, newStatus) => {
+    if (!canMarkAttendance) {
+      toast.error(isPastDate ? 'Past attendance is View-Only and cannot be modified' : 'Cannot mark attendance for future dates');
+      return;
+    }
     if (!member.attendanceId) {
       try {
         setUpdating(member.memberId);
@@ -216,6 +230,10 @@ export default function AttendanceDashboard() {
 
   // Mark all members
   const markAll = async (status) => {
+    if (!canMarkAttendance) {
+      toast.error(isPastDate ? 'Past attendance is View-Only and cannot be modified' : 'Cannot mark attendance for future dates');
+      return;
+    }
     if (members.length === 0) {
       toast.error('No members found');
       return;
@@ -270,13 +288,20 @@ export default function AttendanceDashboard() {
 
   // Change date
   const changeDate = (delta) => {
-    const d = new Date(selectedDate);
-
+    const d = new Date(selectedDate + 'T00:00:00');
     d.setDate(d.getDate() + delta);
 
-    setSelectedDate(
-      d.toISOString().split('T')[0]
-    );
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    const nextDateStr = `${year}-${month}-${day}`;
+
+    if (nextDateStr > todayStr) {
+      toast.error('Cannot open future date attendance');
+      return;
+    }
+
+    setSelectedDate(nextDateStr);
   };
 
   // Chart data
@@ -403,6 +428,7 @@ export default function AttendanceDashboard() {
               <button
                 className="btn btn-ghost btn-sm"
                 onClick={() => changeDate(-1)}
+                title="Previous Day"
               >
                 <ChevronLeft size={16} />
               </button>
@@ -411,14 +437,22 @@ export default function AttendanceDashboard() {
                 type="date"
                 className="date-picker-input"
                 value={selectedDate}
-                onChange={(e) =>
-                  setSelectedDate(e.target.value)
-                }
+                max={todayStr}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  if (val > todayStr) {
+                    toast.error('Cannot open future date attendance');
+                    return;
+                  }
+                  if (val) setSelectedDate(val);
+                }}
               />
 
               <button
                 className="btn btn-ghost btn-sm"
                 onClick={() => changeDate(1)}
+                disabled={selectedDate >= todayStr}
+                title={selectedDate >= todayStr ? "Cannot go to future dates" : "Next Day"}
               >
                 <ChevronRight size={16} />
               </button>
@@ -430,9 +464,11 @@ export default function AttendanceDashboard() {
 
               <button
                 className="btn btn-success btn-sm"
+                disabled={!canMarkAttendance || members.length === 0}
                 onClick={() =>
                   markAll('Present')
                 }
+                title={!canMarkAttendance ? "Past date — View Only" : "Mark All Present"}
               >
                 <CheckCircle2 size={14} />
                 Mark All Present
@@ -440,9 +476,11 @@ export default function AttendanceDashboard() {
 
               <button
                 className="btn btn-danger btn-sm"
+                disabled={!canMarkAttendance || members.length === 0}
                 onClick={() =>
                   markAll('Absent')
                 }
+                title={!canMarkAttendance ? "Past date — View Only" : "Mark All Absent"}
               >
                 <XCircle size={14} />
                 Mark All Absent
@@ -463,9 +501,14 @@ export default function AttendanceDashboard() {
 
           <div
             style={{
+              display: 'flex',
+              alignItems: 'center',
+              justify: 'space-between',
               fontSize: 13,
               color: 'var(--text-muted)',
               marginTop: 8,
+              flexWrap: 'wrap',
+              gap: 8,
             }}
           >
             {adminSearch ? (
@@ -483,6 +526,18 @@ export default function AttendanceDashboard() {
                 </strong>
               </span>
             )}
+
+            <div>
+              {isToday ? (
+                <span style={{ fontSize: 12, padding: '3px 10px', borderRadius: 12, background: '#dcfce7', color: '#15803d', fontWeight: 600 }}>
+                  Today's Attendance (Mark & Edit Active)
+                </span>
+              ) : isPastDate ? (
+                <span style={{ fontSize: 12, padding: '3px 10px', borderRadius: 12, background: '#fef3c7', color: '#92400e', fontWeight: 600 }}>
+                  Past Date — View Only (Read Only)
+                </span>
+              ) : null}
+            </div>
           </div>
         </div>
 
@@ -656,6 +711,7 @@ export default function AttendanceDashboard() {
                                 : 'btn-outline'
                             }`}
                             disabled={
+                              !canMarkAttendance ||
                               updating ===
                               (m.attendanceId ||
                                 m.memberId)
@@ -666,7 +722,7 @@ export default function AttendanceDashboard() {
                                 'Present'
                               )
                             }
-                            title="Mark Present"
+                            title={!canMarkAttendance ? "Past attendance is View-Only" : "Mark Present"}
                           >
                             <CheckCircle2
                               size={14}
@@ -683,6 +739,7 @@ export default function AttendanceDashboard() {
                                 : 'btn-outline'
                             }`}
                             disabled={
+                              !canMarkAttendance ||
                               updating ===
                               (m.attendanceId ||
                                 m.memberId)
@@ -693,7 +750,7 @@ export default function AttendanceDashboard() {
                                 'Absent'
                               )
                             }
-                            title="Mark Absent"
+                            title={!canMarkAttendance ? "Past attendance is View-Only" : "Mark Absent"}
                           >
                             <XCircle
                               size={14}

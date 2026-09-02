@@ -46,7 +46,7 @@ export default function PermissionPortal() {
 
   return (
     <>
-      <TopBar title="Permission Portal" />
+      <TopBar title="Permission Portal" hideSearch />
       <div className="page-content">
         {/* Tabs + New Request */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>

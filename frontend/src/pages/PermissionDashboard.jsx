@@ -90,8 +90,7 @@ export default function PermissionDashboard() {
 
   return (
     <>
-      <TopBar title="Permission Dashboard" />
-
+      <TopBar title="Permission Dashboard" hideSearch />
       <div className="page-content">
 
         {/* HEADER CONTROLS */}

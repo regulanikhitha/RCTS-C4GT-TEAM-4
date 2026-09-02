@@ -4,6 +4,14 @@ const Member = require('../models/Member');
 const AuditLog = require('../models/AuditLog');
 const { generateAttendancePDF } = require('../utils/pdfGenerator');
 
+const getTodayDateString = () => {
+  const d = new Date();
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
+
 /**
  * @desc    Mark attendance for a single member
  * @route   POST /api/attendance
@@ -17,6 +25,15 @@ const markAttendance = async (req, res, next) => {
       return res.status(400).json({
         message: 'memberId, date (YYYY-MM-DD), and status (Present/Absent) are required',
       });
+    }
+
+    const todayStr = getTodayDateString();
+    const formattedDate = date.trim();
+    if (formattedDate > todayStr) {
+      return res.status(400).json({ message: 'Cannot mark attendance for future dates.' });
+    }
+    if (formattedDate < todayStr) {
+      return res.status(400).json({ message: 'Attendance for past dates cannot be modified (View Only).' });
     }
 
     // Verify member exists and is active
@@ -77,6 +94,15 @@ const markBulkAttendance = async (req, res, next) => {
       return res.status(400).json({
         message: 'date (YYYY-MM-DD) and a non-empty records array [{ memberId, status }] are required',
       });
+    }
+
+    const todayStr = getTodayDateString();
+    const formattedDate = date.trim();
+    if (formattedDate > todayStr) {
+      return res.status(400).json({ message: 'Cannot mark attendance for future dates.' });
+    }
+    if (formattedDate < todayStr) {
+      return res.status(400).json({ message: 'Attendance for past dates cannot be modified (View Only).' });
     }
 
     const markedBy = req.user ? req.user.email : 'System';
@@ -171,6 +197,14 @@ const updateAttendance = async (req, res, next) => {
 
     if (!attendance) {
       return res.status(404).json({ message: 'Attendance record not found' });
+    }
+
+    const todayStr = getTodayDateString();
+    if (attendance.date > todayStr) {
+      return res.status(400).json({ message: 'Cannot modify attendance for future dates.' });
+    }
+    if (attendance.date < todayStr) {
+      return res.status(400).json({ message: 'Attendance for past dates cannot be modified (View Only).' });
     }
 
     const oldStatus = attendance.status;

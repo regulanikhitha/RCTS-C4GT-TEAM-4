@@ -220,7 +220,7 @@ export default function Dashboard() {
 
   return (
     <>
-      <TopBar title="Dashboard" />
+      <TopBar title="Dashboard" hideSearch />
 
       <div className="page-content">
 

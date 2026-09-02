@@ -5,7 +5,7 @@ import api from '../api/axios';
 import toast from 'react-hot-toast';
 import { useAuth } from '../context/AuthContext';
 
-const ROLES = ['Junior Developer', 'Senior Developer', 'User', 'JD', 'SD', 'LEAD'];
+const ROLES = ['Junior Developer', 'Senior Developer', 'Lead'];
 
 export default function Members() {
   const { user, adminSearch, setAdminSearch } = useAuth();
@@ -56,7 +56,10 @@ export default function Members() {
     const roleAliases = {
       'JD': 'junior developer',
       'SD': 'senior developer',
-      'LEAD': 'lead'
+      'LEAD': 'lead',
+      'Lead': 'lead',
+      'Junior Developer': 'junior developer',
+      'Senior Developer': 'senior developer'
     };
 
     const normalizedMemberRole =
@@ -217,9 +220,9 @@ export default function Members() {
                 style={{ fontSize: 13 }}
               >
                 <option value="">All Roles</option>
-                <option value="JD">Junior Developer</option>
-                <option value="SD">Senior Developer</option>
-                <option value="LEAD">Lead</option>
+                <option value="Junior Developer">Junior Developer</option>
+                <option value="Senior Developer">Senior Developer</option>
+                <option value="Lead">Lead</option>
               </select>
             </div>
             <div className="form-group" style={{ marginBottom: 0 }}>

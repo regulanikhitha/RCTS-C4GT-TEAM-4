@@ -3,7 +3,7 @@ import { Search, Bell } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
-export default function TopBar({ title }) {
+export default function TopBar({ title, hideSearch = false, unreadCount = 0 }) {
   const { user, adminSearch, setAdminSearch } = useAuth();
   const navigate = useNavigate();
   const isAdmin = user?.role === 'admin';
@@ -24,7 +24,7 @@ export default function TopBar({ title }) {
     <header className="topbar">
       <h1 className="topbar-title">{title}</h1>
 
-      {isAdmin && (
+      {isAdmin && !hideSearch && (
         <form className="topbar-search" onSubmit={handleSearch}>
           <Search size={14} />
           <input
@@ -40,7 +40,7 @@ export default function TopBar({ title }) {
       <div className="topbar-actions">
         <button type="button" className="icon-btn" aria-label="Notifications" onClick={handleNotifications}>
           <Bell size={18} />
-          <span className="notification-dot" />
+          {unreadCount > 0 && <span className="notification-dot" />}
         </button>
 
         <div className="avatar-btn">

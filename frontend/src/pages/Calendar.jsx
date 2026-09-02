@@ -21,7 +21,7 @@ export default function CalendarPage() {
 
   return (
     <>
-      <TopBar title="Calendar" />
+      <TopBar title="Calendar" hideSearch />
       <div className="page-content">
         <div className="card" style={{ maxWidth: 600, margin: '0 auto' }}>
           <div className="card-header">
