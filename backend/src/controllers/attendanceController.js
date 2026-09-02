@@ -208,13 +208,38 @@ const updateAttendance = async (req, res, next) => {
  */
 const getDailyAttendance = async (req, res, next) => {
   try {
-    const date = req.query.date || new Date().toISOString().split('T')[0];
-    const { role } = req.query;
+    const date =
+  req.query.date ||
+  new Date().toISOString().split('T')[0];
 
-    const memberFilter = { isActive: true };
-    if (role) {
-      memberFilter.role = new RegExp(`^${role.trim()}$`, 'i');
-    }
+const { role, team } = req.query;
+
+const memberFilter = {
+  isActive: true,
+};
+
+// Role filter
+if (role) {
+  const r = role.trim();
+  if (/^lead/i.test(r)) {
+    memberFilter.$or = [
+      { role: new RegExp('^lead', 'i') },
+      { department: new RegExp('lead', 'i') },
+    ];
+  } else if (/^senior/i.test(r) || /^sd$/i.test(r)) {
+    memberFilter.role = new RegExp('^senior', 'i');
+    memberFilter.department = { $not: /lead/i };
+  } else if (/^junior/i.test(r) || /^jd$/i.test(r)) {
+    memberFilter.role = new RegExp('^junior', 'i');
+  } else {
+    memberFilter.role = new RegExp(`^${r}$`, 'i');
+  }
+}
+
+// Team filter
+if (team) {
+  memberFilter.team = team.trim();
+}
 
     const allMembers = await Member.find(memberFilter).sort({ memberId: 1 });
     const attendanceRecords = await Attendance.find({ date });
@@ -228,16 +253,32 @@ const getDailyAttendance = async (req, res, next) => {
     const report = allMembers.map((member) => {
       const record = attendanceMap.get(member.memberId);
       return {
-        memberId: member.memberId,
-        name: member.name,
-        email: member.email,
-        role: member.role,
-        department: member.department,
-        status: record ? record.status : 'Unmarked',
-        attendanceId: record ? record._id : null,
-        markedTime: record ? record.markedTime : null,
-        markedBy: record ? record.markedBy : null,
-      };
+  memberId: member.memberId,
+  name: member.name,
+  email: member.email,
+  role: member.role,
+  department: member.department,
+
+  // IMPORTANT:
+  // Send team information to frontend
+  team: member.team,
+
+  status: record
+    ? record.status
+    : 'Unmarked',
+
+  attendanceId: record
+    ? record._id
+    : null,
+
+  markedTime: record
+    ? record.markedTime
+    : null,
+
+  markedBy: record
+    ? record.markedBy
+    : null,
+};
     });
 
     return res.status(200).json({
@@ -317,9 +358,23 @@ const getMemberAttendance = async (req, res, next) => {
  */
 const getAttendanceStats = async (req, res, next) => {
   try {
-    const date = req.query.date || new Date().toISOString().split('T')[0];
+    const date =
+  req.query.date ||
+  new Date().toISOString().split('T')[0];
 
-    const activeMembers = await Member.find({ isActive: true });
+const { team } = req.query;
+
+const statsMemberFilter = {
+  isActive: true,
+};
+
+if (team) {
+  statsMemberFilter.team = team.trim();
+}
+
+const activeMembers = await Member.find(
+  statsMemberFilter
+);
     const attendanceRecords = await Attendance.find({ date });
 
     const attendanceMap = new Map();
@@ -332,23 +387,31 @@ const getAttendanceStats = async (req, res, next) => {
 
     const juniorStats = { total: 0, present: 0, absent: 0 };
     const seniorStats = { total: 0, present: 0, absent: 0 };
+    const leadStats = {
+  total: 0,
+  present: 0,
+  absent: 0,
+};
 
     activeMembers.forEach((member) => {
       const status = attendanceMap.get(member.memberId);
-      const isJunior = /junior/i.test(member.role);
-      const isSenior = /senior/i.test(member.role);
-
+      const isLead = /lead/i.test(member.role) || /lead/i.test(member.department);
+      const isJunior = /junior/i.test(member.role) || /junior/i.test(member.department);
+      const isSenior = !isLead && (/senior/i.test(member.role) || /senior/i.test(member.department));
       if (isJunior) juniorStats.total++;
       if (isSenior) seniorStats.total++;
+      if (isLead) leadStats.total++;
 
       if (status === 'Present') {
         totalPresent++;
         if (isJunior) juniorStats.present++;
         if (isSenior) seniorStats.present++;
+        if (isLead) leadStats.present++;
       } else if (status === 'Absent') {
         totalAbsent++;
         if (isJunior) juniorStats.absent++;
         if (isSenior) seniorStats.absent++;
+        if (isLead) leadStats.absent++;
       }
     });
 
@@ -381,6 +444,21 @@ const getAttendanceStats = async (req, res, next) => {
               ? parseFloat(((seniorStats.present / seniorStats.total) * 100).toFixed(2))
               : 0,
         },
+        leads: {
+  total: leadStats.total,
+  present: leadStats.present,
+  absent: leadStats.absent,
+  percentage:
+    leadStats.total > 0
+      ? parseFloat(
+          (
+            (leadStats.present /
+              leadStats.total) *
+            100
+          ).toFixed(2)
+        )
+      : 0,
+},
       },
     });
   } catch (error) {
@@ -410,28 +488,33 @@ const generateDailyReportPDF = async (req, res, next) => {
     let absent = 0;
     const junior = { total: 0, present: 0, absent: 0 };
     const senior = { total: 0, present: 0, absent: 0 };
+    const lead = { total: 0, present: 0, absent: 0 };
 
     const memberReport = activeMembers.map((m) => {
       const att = attendanceMap.get(m.memberId);
-      const isJunior = /junior/i.test(m.role);
-      const isSenior = /senior/i.test(m.role);
-
+      const isLead = /lead/i.test(m.role) || /lead/i.test(m.department);
+      const isJunior = /junior/i.test(m.role) || /junior/i.test(m.department);
+      const isSenior = !isLead && (/senior/i.test(m.role) || /senior/i.test(m.department));
       if (isJunior) junior.total++;
       if (isSenior) senior.total++;
+      if (isLead) lead.total++;
 
       const status = att ? att.status : 'Absent';
       if (status === 'Present') {
         present++;
         if (isJunior) junior.present++;
         if (isSenior) senior.present++;
+        if (isLead) lead.present++;
       } else {
         absent++;
         if (isJunior) junior.absent++;
         if (isSenior) senior.absent++;
+        if (isLead) lead.absent++;
       }
 
       return {
         memberId: m.memberId,
+        team: m.team,
         name: m.name,
         role: m.role,
         status,
@@ -451,6 +534,7 @@ const generateDailyReportPDF = async (req, res, next) => {
       roleStats: {
         juniorDevelopers: junior,
         seniorDevelopers: senior,
+        leads: lead,
       },
     };
 

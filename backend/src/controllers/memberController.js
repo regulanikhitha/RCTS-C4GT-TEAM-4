@@ -12,7 +12,20 @@ const getMembers = async (req, res, next) => {
     const filter = {};
 
     if (role) {
-      filter.role = new RegExp(`^${role.trim()}$`, 'i');
+      const r = role.trim();
+      if (/^lead/i.test(r)) {
+        filter.$or = [
+          { role: new RegExp('^lead', 'i') },
+          { department: new RegExp('lead', 'i') },
+        ];
+      } else if (/^senior/i.test(r) || /^sd$/i.test(r)) {
+        filter.role = new RegExp('^senior', 'i');
+        filter.department = { $not: /lead/i };
+      } else if (/^junior/i.test(r) || /^jd$/i.test(r)) {
+        filter.role = new RegExp('^junior', 'i');
+      } else {
+        filter.role = new RegExp(`^${r}$`, 'i');
+      }
     }
 
     if (department) {

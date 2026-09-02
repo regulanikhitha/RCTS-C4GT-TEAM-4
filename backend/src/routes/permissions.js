@@ -6,16 +6,13 @@ const {
     createPermission,
     getPermissions,
     getPermissionById,
+    updatePermissionStatus,
 } = require('../controllers/permissionController');
 
 const {
     authenticateUser,
     authorizeRole,
 } = require('../middleware/auth');
-
-console.log('CREATE:', typeof createPermission);
-console.log('AUTH:', typeof authenticateUser);
-console.log('ROLE:', typeof authorizeRole);
 
 // =====================================================
 // STUDENT: CREATE PERMISSION REQUEST
@@ -30,15 +27,34 @@ router.post(
 );
 
 // =====================================================
-// ADMIN / COORDINATOR: VIEW ALL PERMISSION REQUESTS
+// GET PERMISSION REQUESTS
 // GET /api/permissions
+// (Students get their own; Admins/Coordinators get all)
 // =====================================================
 
 router.get(
     '/',
     authenticateUser,
-    authorizeRole('admin', 'coordinator'),
     getPermissions
+);
+
+// =====================================================
+// ADMIN / COORDINATOR: UPDATE PERMISSION STATUS
+// PUT /api/permissions/:id
+// =====================================================
+
+router.put(
+    '/:id/status',
+    authenticateUser,
+    authorizeRole('admin', 'coordinator'),
+    updatePermissionStatus
+);
+
+router.put(
+    '/:id',
+    authenticateUser,
+    authorizeRole('admin', 'coordinator'),
+    updatePermissionStatus
 );
 
 // =====================================================

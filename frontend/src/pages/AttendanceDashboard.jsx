@@ -41,13 +41,13 @@ const ROLES = [
   'All Members',
   'Junior Developers',
   'Senior Developers',
-  'Developer Interns',
+  'Leads',
 ];
 
 const ROLE_MAP = {
   'Junior Developers': 'Junior Developer',
   'Senior Developers': 'Senior Developer',
-  'Developer Interns': 'Developer Intern',
+  'Leads': 'Lead',
 };
 
 function formatDate(d) {
@@ -297,11 +297,11 @@ export default function AttendanceDashboard() {
             stats.roleStats?.seniorDevelopers?.absent ?? 0,
         },
         {
-          name: 'Developer Interns',
+          name: 'Leads',
           present:
-            stats.roleStats?.developerInterns?.present ?? 0,
+            stats.roleStats?.leads?.present ?? 0,
           absent:
-            stats.roleStats?.developerInterns?.absent ?? 0,
+            stats.roleStats?.leads?.absent ?? 0,
         },
       ]
     : [];

@@ -1,8 +1,13 @@
 import React from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import {
-  LayoutDashboard, UserCheck, FileText, Users,
-  Calendar, BarChart2, Bell, LogOut,
+  LayoutDashboard,
+   UserCheck, 
+   FileText, 
+   Users,
+  Calendar,
+  Bell, 
+  LogOut,
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
@@ -14,7 +19,6 @@ const NAV = [
   { label: 'Attendance', icon: UserCheck, to: '/attendance' },
   { label: 'Members', icon: Users, to: '/members' },
   { label: 'Calendar', icon: Calendar, to: '/calendar' },
-  { label: 'Reports', icon: BarChart2, to: '/reports' },
   { label: 'Notifications', icon: Bell, to: '/notifications' },
 ];
 

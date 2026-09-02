@@ -19,7 +19,9 @@ export default function Members() {
   const [page, setPage] = useState(1);
   const [showForm, setShowForm] = useState(false);
   const [selectedMember, setSelectedMember] = useState(null);
-  const [form, setForm] = useState({ memberId: '', name: '', email: '', role: 'Junior Developer', department: 'Engineering', phone: '' });
+  const [editingMember, setEditingMember] = useState(null);
+  const [form, setForm] = useState({ memberId: '', name: '', email: '', role: 'Junior Developer', team: '', department: 'Engineering', phone: '' });
+  const [editForm, setEditForm] = useState({ memberId: '', name: '', email: '', role: 'Junior Developer', team: '', department: '', phone: '', isActive: true });
   const [saving, setSaving] = useState(false);
   const PER_PAGE = 10;
 
@@ -59,15 +61,26 @@ export default function Members() {
 
     const normalizedMemberRole =
       (m.role || '').trim().toLowerCase();
+    const normalizedMemberDept =
+      (m.department || '').trim().toLowerCase();
 
     const normalizedSelectedRole =
       (roleAliases[roleFilter] || roleFilter || '')
         .trim()
         .toLowerCase();
 
-    const matchRole =
-      !normalizedSelectedRole ||
-      normalizedMemberRole === normalizedSelectedRole;
+    let matchRole = true;
+    if (normalizedSelectedRole) {
+      if (normalizedSelectedRole === 'lead') {
+        matchRole = normalizedMemberRole.includes('lead') || normalizedMemberDept.includes('lead');
+      } else if (normalizedSelectedRole.includes('senior')) {
+        matchRole = (normalizedMemberRole.includes('senior') || normalizedMemberDept.includes('senior')) && !normalizedMemberDept.includes('lead') && !normalizedMemberRole.includes('lead');
+      } else if (normalizedSelectedRole.includes('junior')) {
+        matchRole = normalizedMemberRole.includes('junior') || normalizedMemberDept.includes('junior');
+      } else {
+        matchRole = normalizedMemberRole === normalizedSelectedRole;
+      }
+    }
 
     // -------------------------
     // TEAM FILTER
@@ -123,10 +136,37 @@ export default function Members() {
       await api.post('/members', form);
       toast.success('Member created!');
       setShowForm(false);
-      setForm({ memberId: '', name: '', email: '', role: 'Junior Developer', department: 'Engineering', phone: '' });
+      setForm({ memberId: '', name: '', email: '', role: 'Junior Developer', team: '', department: 'Engineering', phone: '' });
       fetchMembers();
     } catch (err) {
       toast.error(err.response?.data?.message || 'Failed to create member');
+    } finally { setSaving(false); }
+  };
+
+  const handleEditClick = (m) => {
+    setEditingMember(m);
+    setEditForm({
+      memberId: m.memberId || '',
+      name: m.name || '',
+      email: m.email || '',
+      role: m.role || 'Junior Developer',
+      team: m.team || '',
+      department: m.department || '',
+      phone: m.phone || '',
+      isActive: m.isActive !== undefined ? m.isActive : true,
+    });
+  };
+
+  const handleUpdate = async (e) => {
+    e.preventDefault();
+    setSaving(true);
+    try {
+      await api.put(`/members/${editingMember.memberId}`, editForm);
+      toast.success('Member updated successfully!');
+      setEditingMember(null);
+      fetchMembers();
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to update member');
     } finally { setSaving(false); }
   };
 
@@ -141,7 +181,8 @@ export default function Members() {
     }
   };
 
-  const roleColor = (role) => {
+  const roleColor = (role, dept) => {
+    if (/lead/i.test(role) || /lead/i.test(dept)) return '#059669';
     if (/junior/i.test(role)) return '#2563eb';
     if (/senior/i.test(role)) return '#7c3aed';
     return '#16a34a';
@@ -242,7 +283,7 @@ export default function Members() {
                         <td style={{ fontFamily: 'monospace', fontSize: 12, fontWeight: 700, color: 'var(--primary)' }}>{m.memberId}</td>
                         <td>
                           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                            <div style={{ width: 32, height: 32, borderRadius: '50%', background: `${roleColor(m.role)}20`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700, color: roleColor(m.role), flexShrink: 0 }}>
+                            <div style={{ width: 32, height: 32, borderRadius: '50%', background: `${roleColor(m.role, m.department)}20`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700, color: roleColor(m.role, m.department), flexShrink: 0 }}>
                               {m.name?.split(' ').map(n => n[0]).slice(0, 2).join('')}
                             </div>
                             <span style={{ fontWeight: 600 }}>{m.name}</span>
@@ -250,7 +291,7 @@ export default function Members() {
                         </td>
                         <td style={{ fontSize: 12, color: 'var(--text-secondary)' }}>{m.email}</td>
                         <td>
-                          <span style={{ fontSize: 12, fontWeight: 600, color: roleColor(m.role), background: `${roleColor(m.role)}15`, padding: '2px 8px', borderRadius: 4 }}>{m.role}</span>
+                          <span style={{ fontSize: 12, fontWeight: 600, color: roleColor(m.role, m.department), background: `${roleColor(m.role, m.department)}15`, padding: '2px 8px', borderRadius: 4 }}>{m.role}</span>
                         </td>
                         <td style={{ fontSize: 12, color: 'var(--text-muted)' }}>{m.team || '–'}</td>
                         <td style={{ fontSize: 12, color: 'var(--text-muted)' }}>{m.department}</td>
@@ -266,7 +307,7 @@ export default function Members() {
                             </button>
                             {isAdmin && (
                               <>
-                                <button className="btn btn-ghost btn-sm" title="Edit"><Edit2 size={13} /></button>
+                                <button className="btn btn-ghost btn-sm" title="Edit" onClick={() => handleEditClick(m)} style={{ color: 'var(--primary)' }}><Edit2 size={13} /></button>
                                 <button className="btn btn-ghost btn-sm" style={{ color: 'var(--danger)' }} title="Delete" onClick={() => handleDelete(m.memberId)}><Trash2 size={13} /></button>
                               </>
                             )}
@@ -312,7 +353,7 @@ export default function Members() {
             <div className="modal" style={{ maxWidth: 600 }}>
               <div className="modal-header">
                 <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-                  <div style={{ width: 50, height: 50, borderRadius: '50%', background: `${roleColor(selectedMember.role)}20`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, fontWeight: 700, color: roleColor(selectedMember.role) }}>
+                  <div style={{ width: 50, height: 50, borderRadius: '50%', background: `${roleColor(selectedMember.role, selectedMember.department)}20`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, fontWeight: 700, color: roleColor(selectedMember.role, selectedMember.department) }}>
                     {selectedMember.name?.split(' ').map(n => n[0]).slice(0, 2).join('')}
                   </div>
                   <div>
@@ -330,7 +371,7 @@ export default function Members() {
                   </div>
                   <div>
                     <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase' }}>Role</label>
-                    <div style={{ fontSize: 14, fontWeight: 500, marginTop: 4, color: roleColor(selectedMember.role) }}>{selectedMember.role}</div>
+                    <div style={{ fontSize: 14, fontWeight: 500, marginTop: 4, color: roleColor(selectedMember.role, selectedMember.department) }}>{selectedMember.role}</div>
                   </div>
                   <div>
                     <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase' }}>Team</label>
@@ -354,6 +395,94 @@ export default function Members() {
                   </div>
                 </div>
               </div>
+              {isAdmin && (
+                <div className="modal-footer" style={{ borderTop: '1px solid var(--border)', paddingTop: 14 }}>
+                  <button
+                    type="button"
+                    className="btn btn-primary btn-sm"
+                    onClick={() => {
+                      const target = selectedMember;
+                      setSelectedMember(null);
+                      handleEditClick(target);
+                    }}
+                    style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 6 }}
+                  >
+                    <Edit2 size={13} /> Edit Member
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Edit Member Modal */}
+        {editingMember && (
+          <div className="modal-overlay" onClick={e => e.target === e.currentTarget && setEditingMember(null)}>
+            <div className="modal" style={{ maxWidth: 520 }}>
+              <div className="modal-header">
+                <div>
+                  <div className="modal-title">Edit Member</div>
+                  <div className="modal-subtitle">Update details for {editingMember.memberId}</div>
+                </div>
+                <button className="modal-close" onClick={() => setEditingMember(null)}><X size={18} /></button>
+              </div>
+              <form onSubmit={handleUpdate}>
+                <div className="modal-body">
+                  <div className="form-row form-row-2">
+                    <div className="form-group">
+                      <label className="form-label">Member ID</label>
+                      <input className="form-input" disabled value={editForm.memberId} style={{ background: '#f8fafc', cursor: 'not-allowed', color: 'var(--text-muted)' }} />
+                    </div>
+                    <div className="form-group">
+                      <label className="form-label">Full Name <span className="required">*</span></label>
+                      <input className="form-input" required value={editForm.name} onChange={e => setEditForm(f => ({ ...f, name: e.target.value }))} placeholder="John Doe" />
+                    </div>
+                  </div>
+                  <div className="form-group">
+                    <label className="form-label">Email <span className="required">*</span></label>
+                    <input type="email" className="form-input" required value={editForm.email} onChange={e => setEditForm(f => ({ ...f, email: e.target.value }))} placeholder="john@domain.com" />
+                  </div>
+                  <div className="form-row form-row-2">
+                    <div className="form-group">
+                      <label className="form-label">Role</label>
+                      <select className="form-input" value={editForm.role} onChange={e => setEditForm(f => ({ ...f, role: e.target.value }))}>
+                        <option value="Junior Developer">Junior Developer</option>
+                        <option value="Senior Developer">Senior Developer</option>
+                        <option value="Lead">Lead</option>
+                        <option value="User">User</option>
+                      </select>
+                    </div>
+                    <div className="form-group">
+                      <label className="form-label">Team</label>
+                      <select className="form-input" value={editForm.team} onChange={e => setEditForm(f => ({ ...f, team: e.target.value }))}>
+                        <option value="">No Team</option>
+                        {teams.map(t => <option key={t} value={t}>{t}</option>)}
+                      </select>
+                    </div>
+                  </div>
+                  <div className="form-row form-row-2">
+                    <div className="form-group">
+                      <label className="form-label">Department</label>
+                      <input className="form-input" value={editForm.department} onChange={e => setEditForm(f => ({ ...f, department: e.target.value }))} placeholder="Department" />
+                    </div>
+                    <div className="form-group">
+                      <label className="form-label">Status</label>
+                      <select className="form-input" value={editForm.isActive ? 'true' : 'false'} onChange={e => setEditForm(f => ({ ...f, isActive: e.target.value === 'true' }))}>
+                        <option value="true">Active</option>
+                        <option value="false">Inactive</option>
+                      </select>
+                    </div>
+                  </div>
+                  <div className="form-group">
+                    <label className="form-label">Phone</label>
+                    <input className="form-input" value={editForm.phone} onChange={e => setEditForm(f => ({ ...f, phone: e.target.value }))} placeholder="+91 9876543210" />
+                  </div>
+                </div>
+                <div className="modal-footer">
+                  <button type="button" className="btn btn-outline" onClick={() => setEditingMember(null)}>Cancel</button>
+                  <button type="submit" className="btn btn-primary" disabled={saving}>{saving ? 'Saving…' : 'Save Changes'}</button>
+                </div>
+              </form>
             </div>
           </div>
         )}
@@ -389,13 +518,23 @@ export default function Members() {
                     <div className="form-group">
                       <label className="form-label">Role</label>
                       <select className="form-input" value={form.role} onChange={e => setForm(f => ({ ...f, role: e.target.value }))}>
-                        {ROLES.map(r => <option key={r}>{r}</option>)}
+                        <option value="Junior Developer">Junior Developer</option>
+                        <option value="Senior Developer">Senior Developer</option>
+                        <option value="Lead">Lead</option>
+                        <option value="User">User</option>
                       </select>
                     </div>
                     <div className="form-group">
-                      <label className="form-label">Department</label>
-                      <input className="form-input" value={form.department} onChange={e => setForm(f => ({ ...f, department: e.target.value }))} />
+                      <label className="form-label">Team</label>
+                      <select className="form-input" value={form.team} onChange={e => setForm(f => ({ ...f, team: e.target.value }))}>
+                        <option value="">No Team</option>
+                        {teams.map(t => <option key={t} value={t}>{t}</option>)}
+                      </select>
                     </div>
+                  </div>
+                  <div className="form-group">
+                    <label className="form-label">Department</label>
+                    <input className="form-input" value={form.department} onChange={e => setForm(f => ({ ...f, department: e.target.value }))} />
                   </div>
                   <div className="form-group">
                     <label className="form-label">Phone</label>

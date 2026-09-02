@@ -120,7 +120,7 @@ const C4GT_MEMBERS = [
 
 // Map spreadsheet role codes → system Member role & department label
 const roleMap = {
-  LEAD: { memberRole: 'Senior Developer', department: 'Team Lead' },
+  LEAD: { memberRole: 'Lead', department: 'Team Lead' },
   SD:   { memberRole: 'Senior Developer', department: 'Senior Developer' },
   JD:   { memberRole: 'Junior Developer', department: 'Junior Developer' },
 };

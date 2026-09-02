@@ -75,7 +75,19 @@ const createPermission = async (req, res, next) => {
 
 const getPermissions = async (req, res, next) => {
     try {
-        const permissions = await Permission.find()
+        const user = req.user;
+        let query = {};
+        if (user && user.role === 'student') {
+            query = {
+                $or: [
+                    { user: user._id },
+                    { memberEmail: user.email?.toLowerCase().trim() },
+                    { memberId: user.memberId },
+                ].filter(Boolean),
+            };
+        }
+
+        const permissions = await Permission.find(query)
             .populate('user', 'name email role memberId')
             .populate('reviewedBy', 'name email role')
             .sort({ createdAt: -1 });
@@ -119,6 +131,47 @@ const getPermissionById = async (req, res, next) => {
 
 
 // =====================================================
+// UPDATE PERMISSION STATUS (APPROVE / REJECT)
+// PUT /api/permissions/:id
+// =====================================================
+
+const updatePermissionStatus = async (req, res, next) => {
+    try {
+        const { status, adminComment } = req.body;
+
+        if (!status || !['approved', 'rejected', 'pending'].includes(status)) {
+            return res.status(400).json({
+                message: 'Status must be pending, approved, or rejected.',
+            });
+        }
+
+        const permission = await Permission.findById(req.params.id);
+        if (!permission) {
+            return res.status(404).json({
+                message: 'Permission request not found.',
+            });
+        }
+
+        permission.status = status;
+        if (adminComment !== undefined) {
+            permission.adminComment = adminComment;
+        }
+        permission.reviewedBy = req.user._id;
+        permission.reviewedAt = new Date();
+
+        await permission.save();
+
+        return res.status(200).json({
+            message: `Permission request ${status} successfully.`,
+            permission,
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+
+// =====================================================
 // EXPORTS
 // =====================================================
 
@@ -126,4 +179,5 @@ module.exports = {
     createPermission,
     getPermissions,
     getPermissionById,
+    updatePermissionStatus,
 };
