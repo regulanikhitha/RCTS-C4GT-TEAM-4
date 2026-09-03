@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 
-const sectionIds = ['home', 'about', 'roles', 'contact'];
+const sectionIds = ['home', 'about'];
 
 export default function Landing() {
   const navigate = useNavigate();
@@ -12,8 +12,6 @@ export default function Landing() {
   const navItems = useMemo(
     () => [
       { id: 'home', label: 'Home' },
-      { id: 'roles', label: 'Roles' },
-      { id: 'contact', label: 'Contact' },
     ],
     []
   );
@@ -223,9 +221,6 @@ export default function Landing() {
         </nav>
 
         <div className="lp-nav-right">
-          <button type="button" className="lp-btn-login" onClick={handleLogin}>
-            Login →
-          </button>
         </div>
       </header>
 
@@ -329,100 +324,9 @@ export default function Landing() {
           </div>
         </section>
 
-        <section className="lp-section lp-alt" id="roles">
-          <div className="lp-section-head">
-            <span className="lp-kicker">Sign in as</span>
-            <h2>A dashboard tuned to each role</h2>
-            <p>The same platform, three different views — everyone sees exactly what they need to do their part.</p>
-          </div>
 
-          <div className="lp-grid-3">
-            <div className="lp-role">
-              <span className="lp-role-tag" style={{ background: '#ede9fe', color: '#6d28d9' }}>Admin</span>
-              <h3>Full system access</h3>
-              <ul>
-                <li>View and manage all 81 members</li>
-                <li>Approve or reject any permission request</li>
-                <li>Add, edit, or remove member records</li>
-                <li>Generate reports and view audit logs</li>
-              </ul>
-            </div>
 
-            <div className="lp-role">
-              <span className="lp-role-tag" style={{ background: '#fef3c7', color: '#b45309' }}>Coordinator</span>
-              <h3>Team oversight</h3>
-              <ul>
-                <li>Mark attendance for their team</li>
-                <li>Review and action permission requests</li>
-                <li>Manage team member details</li>
-                <li>View attendance reports for their team</li>
-              </ul>
-            </div>
 
-            <div className="lp-role">
-              <span className="lp-role-tag" style={{ background: '#dcfce7', color: '#15803d' }}>Student</span>
-              <h3>Personal workspace</h3>
-              <ul>
-                <li>View their own attendance history</li>
-                <li>Submit permission requests</li>
-                <li>Check the shared team calendar</li>
-              </ul>
-            </div>
-          </div>
-        </section>
-
-        <section className="lp-section" id="contact">
-          <div className="lp-contact-grid">
-            <div className="lp-contact-info">
-              <span className="lp-kicker">Get in touch</span>
-              <h2>Questions about your access?</h2>
-              <p>Locked out, missing from the roster, or not sure which role you should have? Reach the C4GT Hub coordinators below, or send a note through the form.</p>
-
-              <div className="lp-contact-row">
-                <div className="lp-contact-icon">✉</div>
-                <div>
-                  <strong>hub@c4gt-kiet.org</strong>
-                  <span>General support</span>
-                </div>
-              </div>
-              <div className="lp-contact-row">
-                <div className="lp-contact-icon">🛡</div>
-                <div>
-                  <strong>Admin desk</strong>
-                  <span>Account &amp; access issues</span>
-                </div>
-              </div>
-              <div className="lp-contact-row">
-                <div className="lp-contact-icon">📍</div>
-                <div>
-                  <strong>KIET Group of Institutions</strong>
-                  <span>Correlation Cell, C4GT Program</span>
-                </div>
-              </div>
-            </div>
-
-            <form className="lp-form" onSubmit={handleSubmit}>
-              <div className="lp-form-row">
-                <div>
-                  <label>Your name</label>
-                  <input required placeholder="Jane Doe" />
-                </div>
-                <div>
-                  <label>Email</label>
-                  <input required type="email" placeholder="you@kiet.edu" />
-                </div>
-              </div>
-              <div className="lp-form-field">
-                <label>Message</label>
-                <textarea required placeholder="Tell us what you need help with…" />
-              </div>
-              <button type="submit" className="lp-form-submit">
-                Send message
-              </button>
-              <p className="lp-form-hint">We typically reply within one working day.</p>
-            </form>
-          </div>
-        </section>
       </main>
 
       <footer className="lp-footer">
