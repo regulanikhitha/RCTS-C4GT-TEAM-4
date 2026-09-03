@@ -20,7 +20,7 @@ const NAV = [
   { label: 'Attendance', icon: UserCheck, to: '/attendance', roles: ['admin', 'coordinator'] },
   { label: 'Members', icon: Users, to: '/members', roles: ['admin', 'coordinator'] },
   { label: 'Calendar', icon: Calendar, to: '/calendar', roles: ['student', 'admin', 'coordinator'] },
-  { label: 'Reports', icon: BarChart2, to: '/reports', roles: ['student', 'admin', 'coordinator'] },
+  { label: 'Reports', icon: BarChart2, to: '/reports', roles: ['admin', 'coordinator'] },
   { label: 'Notifications', icon: Bell, to: '/notifications', roles: ['student', 'admin', 'coordinator'] },
 ];
 
