@@ -17,7 +17,6 @@ import AttendanceDashboard from './pages/AttendanceDashboard';
 import PermissionPortal from './pages/PermissionPortal';
 import Members from './pages/Members';
 import CalendarPage from './pages/Calendar';
-import Reports from './pages/Reports';
 
 function getDefaultDashboardPath(role) {
   if (role === 'student') return '/student-dashboard';
@@ -71,7 +70,6 @@ function AppLayout() {
           <Route path="/permissions" element={<PermissionPortal />} />
           <Route path="/members" element={<Members />} />
           <Route path="/calendar" element={<CalendarPage />} />
-          <Route path="/reports" element={<Reports />} />
           <Route path="/notifications" element={<PlaceholderPage title="Notifications" />} />
           <Route path="*" element={<Navigate to={defaultDashboardPath} replace />} />
         </Routes>

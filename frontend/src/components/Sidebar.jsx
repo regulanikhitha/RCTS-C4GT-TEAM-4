@@ -15,12 +15,10 @@ import { useAuth } from '../context/AuthContext';
 const NAV = [
   { label: 'Admin Dashboard', icon: LayoutDashboard, to: '/admin-dashboard', roles: ['admin'] },
   { label: 'Coordinator Dashboard', icon: UserCheck, to: '/coordinator-dashboard', roles: ['coordinator'] },
-  { label: 'Student Dashboard', icon: Users, to: '/student-dashboard', roles: ['student', 'admin', 'coordinator'] },
   { label: 'Permission Dashboard', icon: FileText, to: '/permission-dashboard', roles: ['student', 'admin', 'coordinator'] },
   { label: 'Attendance', icon: UserCheck, to: '/attendance', roles: ['admin', 'coordinator'] },
   { label: 'Members', icon: Users, to: '/members', roles: ['admin', 'coordinator'] },
   { label: 'Calendar', icon: Calendar, to: '/calendar', roles: ['student', 'admin', 'coordinator'] },
-  { label: 'Reports', icon: BarChart2, to: '/reports', roles: ['admin', 'coordinator'] },
   { label: 'Notifications', icon: Bell, to: '/notifications', roles: ['student', 'admin', 'coordinator'] },
 ];
 

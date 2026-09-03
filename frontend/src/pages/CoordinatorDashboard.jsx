@@ -30,6 +30,7 @@ export default function CoordinatorDashboard() {
   ].sort();
 
   // Filter members team-wise
+  // If no team is selected, show ALL members
   const teamMembers = teamFilter
     ? members.filter(
         member =>
@@ -126,150 +127,148 @@ export default function CoordinatorDashboard() {
 
         </div>
 
-        {/* SELECTED TEAM MEMBERS */}
-        {teamFilter && (
-          <div
-            className="card"
-            style={{ marginTop: 20 }}
-          >
+        {/* TEAM MEMBERS */}
+        <div
+          className="card"
+          style={{ marginTop: 20 }}
+        >
 
-            <div
+          <div
+            style={{
+              padding: '16px 20px',
+              borderBottom: '1px solid var(--border)'
+            }}
+          >
+            <h3
               style={{
-                padding: '16px 20px',
-                borderBottom: '1px solid var(--border)'
+                fontSize: 16,
+                fontWeight: 700
               }}
             >
-              <h3
-                style={{
-                  fontSize: 16,
-                  fontWeight: 700
-                }}
-              >
-                {teamFilter}
-              </h3>
+              {teamFilter || 'All Teams'}
+            </h3>
 
-              <p
-                style={{
-                  fontSize: 12,
-                  color: 'var(--text-muted)',
-                  marginTop: 4
-                }}
-              >
-                {teamMembers.length} member
-                {teamMembers.length !== 1 ? 's' : ''}
-              </p>
-            </div>
-
-            <div className="table-wrap">
-
-              {teamMembers.length === 0 ? (
-
-                <div className="empty-state">
-                  <Users size={40} />
-
-                  <h3>
-                    No members found
-                  </h3>
-
-                  <p>
-                    No members are assigned to this team.
-                  </p>
-                </div>
-
-              ) : (
-
-                <table>
-
-                  <thead>
-                    <tr>
-                      <th>Member ID</th>
-                      <th>Name</th>
-                      <th>Email</th>
-                      <th>Role</th>
-                      <th>Department</th>
-                      <th>Status</th>
-                    </tr>
-                  </thead>
-
-                  <tbody>
-
-                    {teamMembers.map(member => (
-
-                      <tr key={member._id}>
-
-                        <td
-                          style={{
-                            fontFamily: 'monospace',
-                            fontSize: 12,
-                            fontWeight: 700,
-                            color: 'var(--primary)'
-                          }}
-                        >
-                          {member.memberId}
-                        </td>
-
-                        <td
-                          style={{
-                            fontWeight: 600
-                          }}
-                        >
-                          {member.name}
-                        </td>
-
-                        <td
-                          style={{
-                            fontSize: 12,
-                            color: 'var(--text-secondary)'
-                          }}
-                        >
-                          {member.email}
-                        </td>
-
-                        <td
-                          style={{
-                            fontSize: 12
-                          }}
-                        >
-                          {member.role}
-                        </td>
-
-                        <td
-                          style={{
-                            fontSize: 12,
-                            color: 'var(--text-muted)'
-                          }}
-                        >
-                          {member.department || '–'}
-                        </td>
-
-                        <td>
-                          <span
-                            className={`badge ${
-                              member.isActive
-                                ? 'badge-present'
-                                : 'badge-absent'
-                            }`}
-                            style={{ fontSize: 11 }}
-                          >
-                            {member.isActive
-                              ? 'Active'
-                              : 'Inactive'}
-                          </span>
-                        </td>
-
-                      </tr>
-
-                    ))}
-
-                  </tbody>
-
-                </table>
-
-              )}
-
-            </div>
+            <p
+              style={{
+                fontSize: 12,
+                color: 'var(--text-muted)',
+                marginTop: 4
+              }}
+            >
+              {teamMembers.length} member
+              {teamMembers.length !== 1 ? 's' : ''}
+            </p>
           </div>
-        )}
+
+          <div className="table-wrap">
+
+            {teamMembers.length === 0 ? (
+
+              <div className="empty-state">
+                <Users size={40} />
+
+                <h3>
+                  No members found
+                </h3>
+
+                <p>
+                  No members are available.
+                </p>
+              </div>
+
+            ) : (
+
+              <table>
+
+                <thead>
+                  <tr>
+                    <th>Member ID</th>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Role</th>
+                    <th>Department</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+
+                <tbody>
+
+                  {teamMembers.map(member => (
+
+                    <tr key={member._id}>
+
+                      <td
+                        style={{
+                          fontFamily: 'monospace',
+                          fontSize: 12,
+                          fontWeight: 700,
+                          color: 'var(--primary)'
+                        }}
+                      >
+                        {member.memberId}
+                      </td>
+
+                      <td
+                        style={{
+                          fontWeight: 600
+                        }}
+                      >
+                        {member.name}
+                      </td>
+
+                      <td
+                        style={{
+                          fontSize: 12,
+                          color: 'var(--text-secondary)'
+                        }}
+                      >
+                        {member.email}
+                      </td>
+
+                      <td
+                        style={{
+                          fontSize: 12
+                        }}
+                      >
+                        {member.role}
+                      </td>
+
+                      <td
+                        style={{
+                          fontSize: 12,
+                          color: 'var(--text-muted)'
+                        }}
+                      >
+                        {member.department || '–'}
+                      </td>
+
+                      <td>
+                        <span
+                          className={`badge ${
+                            member.isActive
+                              ? 'badge-present'
+                              : 'badge-absent'
+                          }`}
+                          style={{ fontSize: 11 }}
+                        >
+                          {member.isActive
+                            ? 'Active'
+                            : 'Inactive'}
+                        </span>
+                      </td>
+
+                    </tr>
+
+                  ))}
+
+                </tbody>
+
+              </table>
+
+            )}
+
+          </div>
+        </div>
 
       </div>
     </>
