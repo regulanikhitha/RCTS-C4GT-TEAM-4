@@ -86,6 +86,7 @@ export default function Dashboard() {
         const haystack = [
           member.name,
           member.role,
+          member.department,
           member.memberId,
           member.email,
           member.team,
@@ -138,10 +139,35 @@ export default function Dashboard() {
 
   // Role-wise attendance
   const roleRows = (() => {
-    const roles = {};
+    if (!filteredMembers.length) return [];
+
+    const ORDERED_ROLES = ['Lead', 'Senior Developer', 'Junior Developer'];
+    const roles = {
+      Lead: { total: 0, present: 0, absent: 0 },
+      'Senior Developer': { total: 0, present: 0, absent: 0 },
+      'Junior Developer': { total: 0, present: 0, absent: 0 },
+    };
 
     filteredMembers.forEach((member) => {
-      const role = member.role || 'Unknown';
+      const isLead =
+        /lead/i.test(member.role) || /lead/i.test(member.department);
+      let role = 'Unknown';
+
+      if (isLead) {
+        role = 'Lead';
+      } else if (
+        /senior/i.test(member.role) ||
+        /senior/i.test(member.department)
+      ) {
+        role = 'Senior Developer';
+      } else if (
+        /junior/i.test(member.role) ||
+        /junior/i.test(member.department)
+      ) {
+        role = 'Junior Developer';
+      } else if (member.role) {
+        role = member.role;
+      }
 
       if (!roles[role]) {
         roles[role] = {
@@ -155,14 +181,19 @@ export default function Dashboard() {
 
       if (member.status === 'Present') {
         roles[role].present++;
-      }
-
-      if (member.status === 'Absent') {
+      } else if (member.status === 'Absent') {
         roles[role].absent++;
       }
     });
 
-    return Object.entries(roles);
+    return Object.entries(roles).sort(([a], [b]) => {
+      const indexA = ORDERED_ROLES.indexOf(a);
+      const indexB = ORDERED_ROLES.indexOf(b);
+      if (indexA !== -1 && indexB !== -1) return indexA - indexB;
+      if (indexA !== -1) return -1;
+      if (indexB !== -1) return 1;
+      return a.localeCompare(b);
+    });
   })();
 
   // Quick actions
@@ -217,6 +248,8 @@ export default function Dashboard() {
       color: '#e11d48',
     },
   ];
+
+
 
   return (
     <>
@@ -403,6 +436,7 @@ export default function Dashboard() {
                 </button>
               </div>
             </CardHeader>
+            
 
             <CardContent className="table-wrap">
 
@@ -412,7 +446,7 @@ export default function Dashboard() {
                   <p>Loading attendance…</p>
                 </div>
               ) : (
-                <table>
+                <table className="overview-table">
 
                   <thead>
                     <tr>
@@ -506,10 +540,10 @@ export default function Dashboard() {
                               <td>
                                 <div
                                   style={{
-                                    height: 6,
+                                    height: 7,
                                     background: '#e2e8f0',
-                                    borderRadius: 3,
-                                    width: 80,
+                                    borderRadius: 4,
+                                    width: 70,
                                     overflow: 'hidden',
                                   }}
                                 >
@@ -518,7 +552,7 @@ export default function Dashboard() {
                                       height: '100%',
                                       width: `${percentage}%`,
                                       background: barColor,
-                                      borderRadius: 3,
+                                      borderRadius: 4,
                                       transition:
                                         'width 0.5s ease',
                                     }}

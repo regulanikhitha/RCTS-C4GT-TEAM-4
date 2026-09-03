@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
-import { Search, Bell } from 'lucide-react';
+import { Search } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
-export default function TopBar({ title, hideSearch = false, unreadCount = 0 }) {
+export default function TopBar({ title, hideSearch = false }) {
   const { user, adminSearch, setAdminSearch, logout } = useAuth();
   const navigate = useNavigate();
   const isAdmin = user?.role === 'admin';
@@ -15,10 +15,6 @@ export default function TopBar({ title, hideSearch = false, unreadCount = 0 }) {
 
   const handleSearch = (e) => {
     e.preventDefault();
-  };
-
-  const handleNotifications = () => {
-    navigate('/notifications');
   };
 
   const handleLogout = () => {
@@ -44,11 +40,6 @@ export default function TopBar({ title, hideSearch = false, unreadCount = 0 }) {
       )}
 
       <div className="topbar-actions">
-        <button type="button" className="icon-btn" aria-label="Notifications" onClick={handleNotifications}>
-          <Bell size={18} />
-          {unreadCount > 0 && <span className="notification-dot" />}
-        </button>
-
         <div style={{ position: 'relative' }}>
           <button
             type="button"

@@ -8,6 +8,7 @@ const memberRoutes = require('./routes/members');
 const attendanceRoutes = require('./routes/attendance');
 const coordinatorRoutes = require('./routes/coordinators');
 const permissionRoutes = require('./routes/permissions');
+const notificationRoutes = require('./routes/notifications');
 
 // Import middleware
 const logger = require('./middleware/logger');
@@ -48,6 +49,9 @@ app.use('/api/coordinators', coordinatorRoutes);
 
 // Permission routes
 app.use('/api/permissions', permissionRoutes);
+
+// Notification routes
+app.use('/api/notifications', notificationRoutes);
 
 // --------------- Error Handlers ---------------
 
