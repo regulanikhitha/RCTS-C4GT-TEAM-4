@@ -1,55 +1,16 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 
-const sectionIds = ['home', 'about'];
-
 export default function Landing() {
   const navigate = useNavigate();
-  const [activeSection, setActiveSection] = useState('home');
   const [showLoginPopup, setShowLoginPopup] = useState(false);
-
-  const navItems = useMemo(
-    () => [
-      { id: 'home', label: 'Home' },
-    ],
-    []
-  );
 
   const loginOptions = [
     { role: 'admin', label: 'Admin Login', route: '/admin-dashboard', name: 'Admin User' },
     { role: 'coordinator', label: 'Coordinator Login', route: '/coordinator-dashboard', name: 'Coordinator User' },
     { role: 'student', label: 'Student Login', route: '/student-dashboard', name: 'Student User' },
   ];
-
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        const visibleEntry = entries
-          .filter((entry) => entry.isIntersecting)
-          .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
-
-        if (visibleEntry) {
-          setActiveSection(visibleEntry.target.id);
-        }
-      },
-      {
-        rootMargin: '-35% 0px -45% 0px',
-        threshold: [0.2, 0.5, 0.8],
-      }
-    );
-
-    sectionIds.forEach((id) => {
-      const section = document.getElementById(id);
-      if (section) observer.observe(section);
-    });
-
-    return () => observer.disconnect();
-  }, []);
-
-  const scrollToSection = (id) => {
-    document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  };
 
   const loginAsRole = (role, route, name) => {
     localStorage.setItem('c4gt_login_role', role);
@@ -197,28 +158,6 @@ export default function Landing() {
             <span className="sub">@KIET</span>
           </span>
         </button>
-
-        <nav className="lp-nav-links" aria-label="Main menu" style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', flexWrap: 'wrap' }}>
-          {navItems.map(({ id, label }) => (
-            <button
-              key={id}
-              type="button"
-              className="lp-nav-link"
-              onClick={() => scrollToSection(id)}
-              style={{
-                background: activeSection === id ? 'rgba(67, 56, 202, 0.08)' : 'transparent',
-                color: activeSection === id ? '#4338ca' : '#475569',
-                border: activeSection === id ? '1px solid rgba(67,56,202,0.18)' : '1px solid transparent',
-                borderRadius: '999px',
-                padding: '0.5rem 0.8rem',
-                fontWeight: 600,
-                transition: 'all 0.2s ease',
-              }}
-            >
-              {label}
-            </button>
-          ))}
-        </nav>
 
         <div className="lp-nav-right">
         </div>
