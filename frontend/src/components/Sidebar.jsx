@@ -19,7 +19,7 @@ const NAV = [
   { label: 'Permission Dashboard', icon: FileText, to: '/permission-dashboard', roles: ['student', 'admin', 'coordinator'] },
   { label: 'Attendance', icon: UserCheck, to: '/attendance', roles: ['admin', 'coordinator'] },
   { label: 'Members', icon: Users, to: '/members', roles: ['admin', 'coordinator'] },
-  { label: 'Calendar', icon: Calendar, to: '/calendar', roles: ['student', 'admin', 'coordinator'] },
+  { label: 'Calendar', icon: Calendar, to: '/calendar', roles: ['student'] },
   { label: 'Notifications', icon: Bell, to: '/notifications', roles: ['student', 'admin', 'coordinator'] },
 ];
 
