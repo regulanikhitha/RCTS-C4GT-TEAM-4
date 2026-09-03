@@ -53,14 +53,14 @@ export default function Login() {
       return;
     }
 
-    toast.success('Welcome back!');
+    toast.success('Welcome back!', { duration: 3000 });
     localStorage.removeItem('c4gt_login_role');
     navigate(result.redirect || '/admin-dashboard');
   };
 
   return (
     <div className="login-page">
-      <Toaster position="top-right" />
+      <Toaster position="top-right" toastOptions={{ duration: 3000 }} />
       {/* Decorative circles */}
       <div className="login-bg-circle" style={{ width: 400, height: 400, top: -100, right: -100 }} />
       <div className="login-bg-circle" style={{ width: 300, height: 300, bottom: -80, left: -80 }} />

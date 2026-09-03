@@ -53,7 +53,7 @@ export default function ForgotPassword() {
 
   return (
     <div className="login-page">
-      <Toaster position="top-right" />
+      <Toaster position="top-right" toastOptions={{ duration: 3000 }} />
       <div className="login-bg-circle" style={{ width: 400, height: 400, top: -100, right: -100 }} />
       <div className="login-bg-circle" style={{ width: 300, height: 300, bottom: -80, left: -80 }} />
 
