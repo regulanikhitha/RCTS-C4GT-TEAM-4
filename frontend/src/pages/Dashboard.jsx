@@ -8,7 +8,6 @@ import {
   ClipboardList,
   FileText,
   UserPlus,
-  Download,
 } from 'lucide-react';
 import {
   Bar,
@@ -218,13 +217,6 @@ export default function Dashboard() {
       sub: 'Review team operations',
       color: 'green',
       to: '/coordinator-dashboard',
-    },
-    {
-      icon: <Download size={18} />,
-      title: 'Student Dashboard',
-      sub: 'Track learner activity',
-      color: 'orange',
-      to: '/student-dashboard',
     },
   ];
 

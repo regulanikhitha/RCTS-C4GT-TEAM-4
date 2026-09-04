@@ -54,7 +54,7 @@ function AppLayout() {
             element={
               user.role === 'student'
                 ? <Navigate to="/student-dashboard" replace />
-                : user.role === 'coordinator'
+                : user.role === 'admin' || user.role === 'coordinator'
                   ? <CoordinatorDashboard />
                   : <Navigate to="/admin-dashboard" replace />
             }

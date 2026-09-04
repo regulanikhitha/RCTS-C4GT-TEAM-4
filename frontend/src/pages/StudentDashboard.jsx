@@ -1,15 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import TopBar from '../components/TopBar';
-import {
-  CartesianGrid,
-  Line,
-  LineChart,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis,
-} from 'recharts';
 import { Bell, Megaphone, Calendar, Users, X, ArrowRight, Sparkles, CheckCircle2 } from 'lucide-react';
 import api from '../api/axios';
 
@@ -74,15 +65,6 @@ export default function StudentDashboard() {
     handleClosePopup();
     navigate('/notifications');
   };
-  const attendanceData = [
-    { day: 'Mon', attendance: 88 },
-    { day: 'Tue', attendance: 94 },
-    { day: 'Wed', attendance: 91 },
-    { day: 'Thu', attendance: 96 },
-    { day: 'Fri', attendance: 89 },
-    { day: 'Sat', attendance: 93 },
-  ];
-
   const getTypeBadgeStyle = (type) => {
     switch (type) {
       case 'Holiday':
@@ -134,17 +116,6 @@ export default function StudentDashboard() {
             </div>
           </div>
 
-          <div style={{ width: '100%', height: 260 }}>
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={attendanceData} margin={{ top: 8, right: 12, left: -20, bottom: 0 }}>
-                <CartesianGrid stroke="#e2e8f0" strokeDasharray="3 3" vertical={false} />
-                <XAxis dataKey="day" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#64748b' }} />
-                <YAxis domain={[0, 100]} tickFormatter={(value) => `${value}%`} axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#64748b' }} />
-                <Tooltip formatter={(value) => [`${value}%`, 'Attendance']} contentStyle={{ borderRadius: 8, border: '1px solid #e2e8f0' }} />
-                <Line type="monotone" dataKey="attendance" stroke="#0f766e" strokeWidth={3} dot={{ r: 4, fill: '#0f766e', strokeWidth: 2, stroke: '#fff' }} activeDot={{ r: 6 }} />
-              </LineChart>
-            </ResponsiveContainer>
-          </div>
         </div>
       </div>
 
