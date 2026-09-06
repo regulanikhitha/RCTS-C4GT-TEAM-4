@@ -2,13 +2,21 @@ import axios from 'axios';
 
 const api = axios.create({
   baseURL: '/api',
-  headers: { 'Content-Type': 'application/json' },
 });
 
 // Attach JWT to every request
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem('c4gt_token');
   if (token) config.headers.Authorization = `Bearer ${token}`;
+
+  // Let the browser set multipart/form-data with the correct boundary
+  // for FormData payloads; use application/json for everything else.
+  if (config.data instanceof FormData) {
+    delete config.headers['Content-Type'];
+  } else {
+    config.headers['Content-Type'] = 'application/json';
+  }
+
   return config;
 });
 

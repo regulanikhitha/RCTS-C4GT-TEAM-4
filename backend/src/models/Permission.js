@@ -2,14 +2,20 @@ const mongoose = require('mongoose');
 
 const permissionSchema = new mongoose.Schema(
     {
-        // The user who submitted the permission request
+        // ==========================================
+        // STUDENT WHO SUBMITTED THE REQUEST
+        // ==========================================
+
         user: {
             type: mongoose.Schema.Types.ObjectId,
             ref: 'User',
             required: [true, 'User is required'],
         },
 
-        // Member information
+        // ==========================================
+        // MEMBER INFORMATION
+        // ==========================================
+
         memberId: {
             type: String,
             required: [true, 'Member ID is required'],
@@ -34,12 +40,16 @@ const permissionSchema = new mongoose.Schema(
             required: [true, 'Role is required'],
             enum: {
                 values: ['student'],
-                message: 'Only students can submit permission requests',
+                message:
+                    'Only students can submit permission requests',
             },
             default: 'student',
         },
 
-        // Permission details
+        // ==========================================
+        // PERMISSION DETAILS
+        // ==========================================
+
         permissionType: {
             type: String,
             required: [true, 'Permission type is required'],
@@ -56,12 +66,15 @@ const permissionSchema = new mongoose.Schema(
             required: [true, 'To date is required'],
         },
 
-        // full_day / half_day / specific_time
         durationType: {
             type: String,
             required: [true, 'Permission duration is required'],
             enum: {
-                values: ['full_day', 'half_day', 'specific_time'],
+                values: [
+                    'full_day',
+                    'half_day',
+                    'specific_time',
+                ],
                 message:
                     'Duration must be full_day, half_day, or specific_time',
             },
@@ -79,15 +92,24 @@ const permissionSchema = new mongoose.Schema(
             trim: true,
         },
 
-        // Reason entered by the student
+        // ==========================================
+        // REASON
+        // ==========================================
+
         reason: {
             type: String,
             required: [true, 'Reason for permission is required'],
             trim: true,
-            maxlength: [500, 'Reason cannot exceed 500 characters'],
+            maxlength: [
+                500,
+                'Reason cannot exceed 500 characters',
+            ],
         },
 
-        // Supporting document information
+        // ==========================================
+        // SUPPORTING DOCUMENT
+        // ==========================================
+
         attachment: {
             originalName: {
                 type: String,
@@ -115,27 +137,107 @@ const permissionSchema = new mongoose.Schema(
             },
         },
 
-        // Declaration checkbox
+        // ==========================================
+        // DECLARATION
+        // ==========================================
+
         declaration: {
             type: Boolean,
             required: [true, 'Declaration is required'],
             validate: {
                 validator: (value) => value === true,
-                message: 'Declaration must be accepted',
+                message:
+                    'Declaration must be accepted',
             },
         },
 
-        // pending → approved / rejected
+        // ==========================================
+        // FINAL / OVERALL STATUS
+        //
+        // pending
+        // approved
+        // rejected
+        //
+        // This represents the overall permission result.
+        // ==========================================
+
         status: {
             type: String,
             enum: {
-                values: ['pending', 'approved', 'rejected'],
-                message: 'Invalid permission status',
+                values: [
+                    'pending',
+                    'approved',
+                    'rejected',
+                ],
+                message:
+                    'Invalid permission status',
             },
             default: 'pending',
         },
 
-        // Admin/coordinator review information
+        // ==========================================
+        // ADMIN REVIEW
+        // ==========================================
+
+        adminStatus: {
+            type: String,
+            enum: {
+                values: [
+                    'pending',
+                    'approved',
+                    'rejected',
+                ],
+                message:
+                    'Invalid admin status',
+            },
+            default: 'pending',
+        },
+
+        adminReviewedBy: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'User',
+            default: null,
+        },
+
+        adminReviewedAt: {
+            type: Date,
+            default: null,
+        },
+
+        // ==========================================
+        // COORDINATOR REVIEW
+        // ==========================================
+
+        coordinatorStatus: {
+            type: String,
+            enum: {
+                values: [
+                    'pending',
+                    'approved',
+                    'rejected',
+                ],
+                message:
+                    'Invalid coordinator status',
+            },
+            default: 'pending',
+        },
+
+        coordinatorReviewedBy: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'User',
+            default: null,
+        },
+
+        coordinatorReviewedAt: {
+            type: Date,
+            default: null,
+        },
+
+        // ==========================================
+        // EXISTING REVIEW INFORMATION
+        // KEEPING FOR COMPATIBILITY
+        // ==========================================
+
         reviewedBy: {
             type: mongoose.Schema.Types.ObjectId,
             ref: 'User',
@@ -151,7 +253,10 @@ const permissionSchema = new mongoose.Schema(
             type: String,
             default: null,
             trim: true,
-            maxlength: [500, 'Admin comment cannot exceed 500 characters'],
+            maxlength: [
+                500,
+                'Admin comment cannot exceed 500 characters',
+            ],
         },
     },
     {
@@ -159,18 +264,32 @@ const permissionSchema = new mongoose.Schema(
     }
 );
 
-// Make sure the end date is not before the start date
-permissionSchema.pre('validate', function (next) {
-    if (this.fromDate && this.toDate && this.toDate < this.fromDate) {
-        this.invalidate(
-            'toDate',
-            'To date cannot be earlier than from date'
-        );
+// ==========================================
+// VALIDATE DATE RANGE
+// ==========================================
+
+permissionSchema.pre(
+    'validate',
+    function (next) {
+        if (
+            this.fromDate &&
+            this.toDate &&
+            this.toDate < this.fromDate
+        ) {
+            this.invalidate(
+                'toDate',
+                'To date cannot be earlier than from date'
+            );
+        }
+
+        next();
     }
+);
 
-    next();
-});
-
-const Permission = mongoose.model('Permission', permissionSchema);
+const Permission =
+    mongoose.model(
+        'Permission',
+        permissionSchema
+    );
 
 module.exports = Permission;

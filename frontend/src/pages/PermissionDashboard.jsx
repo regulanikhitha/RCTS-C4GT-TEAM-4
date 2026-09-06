@@ -1,5 +1,17 @@
-import React, { useEffect, useState, useCallback } from 'react';
-import { Plus, Eye, X, Check, Clock, ChevronLeft, ChevronRight, CheckCircle2, XCircle, Filter } from 'lucide-react';
+import React, { useCallback, useEffect, useState } from 'react';
+import {
+  Plus,
+  Eye,
+  X,
+  Check,
+  Clock,
+  ChevronLeft,
+  ChevronRight,
+  CheckCircle2,
+  XCircle,
+  Filter,
+} from 'lucide-react';
+
 import TopBar from '../components/TopBar';
 import PermissionModal from '../components/PermissionModal';
 import api from '../api/axios';
@@ -8,440 +20,616 @@ import { useAuth } from '../context/AuthContext';
 
 export default function PermissionDashboard() {
   const { user, adminSearch } = useAuth();
-  const isAdmin = user?.role === 'admin' || user?.role === 'coordinator';
-  const isStudent = user?.role === 'student';
 
-  const [activeTab, setActiveTab] = useState(isStudent ? 'My Requests' : 'All Requests');
-  const [statusFilter, setStatusFilter] = useState('all');
+  const isStudent = user?.role === 'student';
+  const canReview = user?.role === 'coordinator';
+
   const [permissions, setPermissions] = useState([]);
   const [loading, setLoading] = useState(false);
   const [showForm, setShowForm] = useState(false);
   const [selected, setSelected] = useState(null);
+  const [statusFilter, setStatusFilter] = useState('all');
   const [page, setPage] = useState(1);
   const [actionLoading, setActionLoading] = useState(false);
+  const [showPendingPopup, setShowPendingPopup] = useState(false);
+  const [pendingPopupShown, setPendingPopupShown] = useState(false);
+
   const PER_PAGE = 8;
+
+  // --------------------------------------------------
+  // FETCH
+  // --------------------------------------------------
 
   const fetchPermissions = useCallback(async () => {
     setLoading(true);
+
     try {
       const { data } = await api.get('/permissions');
       setPermissions(data.permissions || []);
-    } catch (_) {
+    } catch (error) {
+      console.error(error);
       setPermissions([]);
-      toast.error('Unable to load permission requests right now.');
+      toast.error('Unable to load permission requests.');
     } finally {
       setLoading(false);
     }
   }, []);
 
-  useEffect(() => { fetchPermissions(); }, [fetchPermissions]);
+  useEffect(() => {
+    fetchPermissions();
+  }, [fetchPermissions]);
 
-  const searchQuery = (adminSearch || '').trim().toLowerCase();
+  // --------------------------------------------------
+  // STATUS
+  // ONLY COORDINATOR STATUS IS DISPLAYED
+  // --------------------------------------------------
+
+  const getCoordinatorStatus = (permission) =>
+    permission?.coordinatorStatus || 'pending';
+
+  const getStatusLabel = (status) => {
+    if (status === 'approved') return '✅ Approved';
+    if (status === 'rejected') return '❌ Rejected';
+    return '⏳ Pending';
+  };
+
+  const needsReview = (permission) =>
+    canReview &&
+    getCoordinatorStatus(permission) === 'pending';
+
+  // --------------------------------------------------
+  // PENDING POPUP
+  // COORDINATOR ONLY
+  // --------------------------------------------------
+
+  const pendingPermissions = permissions.filter(needsReview);
+
+  useEffect(() => {
+    if (
+      canReview &&
+      !pendingPopupShown &&
+      pendingPermissions.length > 0
+    ) {
+      setShowPendingPopup(true);
+      setPendingPopupShown(true);
+    }
+  }, [
+    canReview,
+    pendingPermissions.length,
+    pendingPopupShown,
+  ]);
+
+  // --------------------------------------------------
+  // SEARCH + FILTER
+  // --------------------------------------------------
+
+  const search = (adminSearch || '').trim().toLowerCase();
 
   const filteredPermissions = permissions.filter((p) => {
-    // Tab filter for student
-    if (isStudent && activeTab === 'My Requests') {
-      const matchUser = p.user === user?._id || p.user?._id === user?._id || p.memberEmail === user?.email || p.memberId === user?.memberId;
-      if (!matchUser && permissions.length > 0 && p.memberEmail && user?.email) {
-        return false;
-      }
+    // Student sees only own requests
+    if (isStudent) {
+      const ownRequest =
+        p.user === user?._id ||
+        p.user?._id === user?._id ||
+        p.memberEmail === user?.email ||
+        p.memberId === user?.memberId;
+
+      if (!ownRequest) return false;
     }
 
-    // Status filter dropdown
-    if (statusFilter !== 'all' && p.status !== statusFilter) {
+    const coordinatorStatus = getCoordinatorStatus(p);
+
+    if (
+      statusFilter !== 'all' &&
+      coordinatorStatus !== statusFilter
+    ) {
       return false;
     }
 
-    // Search query
-    if (!searchQuery) return true;
-    const haystack = [p.memberName, p.memberId, p.role, p.permissionType, p.status, p._id].filter(Boolean).join(' ').toLowerCase();
-    return haystack.includes(searchQuery);
+    if (!search) return true;
+
+    return [
+      p.memberName,
+      p.memberId,
+      p.role,
+      p.permissionType,
+      coordinatorStatus,
+      p._id,
+    ]
+      .filter(Boolean)
+      .join(' ')
+      .toLowerCase()
+      .includes(search);
   });
 
+  // --------------------------------------------------
+  // COUNTS
+  // BASED ONLY ON COORDINATOR STATUS
+  // --------------------------------------------------
+
   const counts = {
-    pending: permissions.filter((p) => p.status === 'pending').length,
-    approved: permissions.filter((p) => p.status === 'approved').length,
-    rejected: permissions.filter((p) => p.status === 'rejected').length,
+    pending: permissions.filter(
+      (p) => getCoordinatorStatus(p) === 'pending'
+    ).length,
+
+    approved: permissions.filter(
+      (p) => getCoordinatorStatus(p) === 'approved'
+    ).length,
+
+    rejected: permissions.filter(
+      (p) => getCoordinatorStatus(p) === 'rejected'
+    ).length,
+
     total: permissions.length,
   };
 
-  const paginated = filteredPermissions.slice((page - 1) * PER_PAGE, page * PER_PAGE);
-  const totalPages = Math.ceil(filteredPermissions.length / PER_PAGE);
+  const paginated = filteredPermissions.slice(
+    (page - 1) * PER_PAGE,
+    page * PER_PAGE
+  );
+
+  const totalPages = Math.ceil(
+    filteredPermissions.length / PER_PAGE
+  );
+
+  // --------------------------------------------------
+  // DATE
+  // --------------------------------------------------
 
   const formatDateRange = (from, to) => {
-    const f = from ? new Date(from).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : '–';
-    const t = to ? new Date(to).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : '–';
-    return `${f} – ${t}`;
+    const format = (date) =>
+      date
+        ? new Date(date).toLocaleDateString('en-IN', {
+          day: '2-digit',
+          month: 'short',
+          year: 'numeric',
+        })
+        : '–';
+
+    return `${format(from)} – ${format(to)}`;
   };
 
-  const handleReview = async (id, newStatus) => {
+  // --------------------------------------------------
+  // APPROVE / REJECT
+  // COORDINATOR ONLY
+  // --------------------------------------------------
+
+  const handleReview = async (id, status) => {
+    if (
+      actionLoading ||
+      user?.role !== 'coordinator'
+    ) {
+      return;
+    }
+
     setActionLoading(true);
+
     try {
-      await api.put(`/permissions/${id}/status`, { status: newStatus });
-      toast.success(`Request marked as ${newStatus}`);
+      await api.put(`/permissions/${id}`, {
+        status,
+        adminComment:
+          status === 'approved'
+            ? 'Permission approved by coordinator.'
+            : 'Permission rejected by coordinator.',
+      });
+
+      toast.success(
+        status === 'approved'
+          ? 'Permission approved!'
+          : 'Permission rejected!'
+      );
+
       setSelected(null);
-      fetchPermissions();
-    } catch (err) {
-      toast.error(err.response?.data?.message || 'Failed to update request');
+      setShowPendingPopup(false);
+
+      await fetchPermissions();
+    } catch (error) {
+      console.error(error);
+
+      toast.error(
+        error.response?.data?.message ||
+        'Failed to update permission.'
+      );
     } finally {
       setActionLoading(false);
     }
   };
 
+  // --------------------------------------------------
+  // VIEW UPLOADED DOCUMENT
+  // --------------------------------------------------
+
+  const handleViewAttachment = async (id) => {
+    try {
+      const response = await api.get(
+        `/permissions/${id}/attachment`,
+        { responseType: 'blob' }
+      );
+
+      const url = URL.createObjectURL(response.data);
+      window.open(url, '_blank');
+
+      setTimeout(() => URL.revokeObjectURL(url), 60000);
+    } catch (error) {
+      toast.error(
+        error.response?.data?.message ||
+        'Unable to open document.'
+      );
+    }
+  };
+
+  // --------------------------------------------------
+  // VIEW GENERATED PDF
+  // --------------------------------------------------
+
+  const handleViewPermissionPDF = async (id) => {
+    try {
+      const response = await api.get(
+        `/permissions/${id}/pdf`,
+        { responseType: 'blob' }
+      );
+
+      const blob = new Blob([response.data], {
+        type: 'application/pdf',
+      });
+
+      const url = URL.createObjectURL(blob);
+      window.open(url, '_blank');
+
+      setTimeout(() => URL.revokeObjectURL(url), 60000);
+    } catch (error) {
+      toast.error(
+        error.response?.data?.message ||
+        'Unable to open permission PDF.'
+      );
+    }
+  };
+
+  // --------------------------------------------------
+  // UI
+  // --------------------------------------------------
+
   return (
     <>
-      <TopBar title="Permission Dashboard" hideSearch />
+      <TopBar
+        title="Permission Dashboard"
+        hideSearch
+      />
+
       <div className="page-content">
 
-        {/* HEADER CONTROLS */}
+        {/* HEADER */}
+
         <div
           style={{
             display: 'flex',
-            alignItems: 'center',
             justifyContent: 'space-between',
+            alignItems: 'center',
+            gap: 12,
             marginBottom: 16,
             flexWrap: 'wrap',
-            gap: 12,
           }}
         >
-          {/* STUDENT VIEW: Tabs for My Requests */}
-          {isStudent ? (
-            <div
-              className="permission-tabs"
+          <div>
+            <strong style={{ fontSize: 15 }}>
+              {isStudent
+                ? 'My Permission Requests'
+                : 'Permission Requests Management'}
+            </strong>
+          </div>
+
+          <div
+            style={{
+              display: 'flex',
+              gap: 10,
+              alignItems: 'center',
+            }}
+          >
+            <Filter
+              size={14}
+              style={{ color: 'var(--text-muted)' }}
+            />
+
+            <select
+              className="form-input"
+              value={statusFilter}
+              onChange={(e) => {
+                setStatusFilter(e.target.value);
+                setPage(1);
+              }}
               style={{
-                marginBottom: 0,
-                borderBottom: 'none'
+                padding: '7px 12px',
+                borderRadius: 8,
+                minWidth: 160,
               }}
             >
-              <button
-                className={`p-tab ${activeTab === 'My Requests' ? 'active' : ''}`}
-                onClick={() => setActiveTab('My Requests')}
-              >
-                My Requests
-              </button>
-            </div>
-          ) : (
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <span style={{ fontSize: 15, fontWeight: 700, color: 'var(--text-primary)' }}>
-                Permission Requests Management
-              </span>
-            </div>
-          )}
+              <option value="all">
+                All Requests ({counts.total})
+              </option>
+              <option value="pending">
+                Pending ({counts.pending})
+              </option>
+              <option value="approved">
+                Approved ({counts.approved})
+              </option>
+              <option value="rejected">
+                Rejected ({counts.rejected})
+              </option>
+            </select>
 
-          {/* RIGHT SIDE CONTROLS: Status Dropdown & New Request for Student */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginLeft: 'auto', flexWrap: 'wrap' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-              <Filter size={14} style={{ color: 'var(--text-muted)' }} />
-              <select
-                className="form-input"
-                value={statusFilter}
-                onChange={(e) => { setStatusFilter(e.target.value); setPage(1); }}
-                style={{
-                  padding: '7px 12px',
-                  borderRadius: 8,
-                  fontSize: 13,
-                  fontWeight: 600,
-                  minWidth: 170,
-                }}
-              >
-                <option value="all">All Requests ({counts.total})</option>
-                <option value="pending">Pending ({counts.pending})</option>
-                <option value="approved">Approved ({counts.approved})</option>
-                <option value="rejected">Rejected ({counts.rejected})</option>
-              </select>
-            </div>
-
-            {/* ONLY STUDENT SEES NEW REQUEST BUTTON */}
             {isStudent && (
               <button
                 className="btn btn-primary"
                 onClick={() => setShowForm(true)}
               >
-                <Plus size={15} /> New Request
+                <Plus size={15} />
+                New Request
               </button>
             )}
           </div>
         </div>
 
-        {/* STATS CARDS */}
+        {/* STATS */}
+
         <div className="permission-stats">
           {[
-            {
-              key: 'pending',
-              label: 'Pending',
-              val: counts.pending,
-              color: 'orange'
-            },
-            {
-              key: 'approved',
-              label: 'Approved',
-              val: counts.approved,
-              color: 'green'
-            },
-            {
-              key: 'rejected',
-              label: 'Rejected',
-              val: counts.rejected,
-              color: 'red'
-            },
-            {
-              key: 'all',
-              label: 'Total Requested',
-              val: counts.total,
-              color: 'blue'
-            },
-          ].map((s) => (
+            ['pending', 'Pending', counts.pending, 'orange'],
+            ['approved', 'Approved', counts.approved, 'green'],
+            ['rejected', 'Rejected', counts.rejected, 'red'],
+            ['all', 'Total Requested', counts.total, 'blue'],
+          ].map(([key, label, value, color]) => (
             <div
-              key={s.label}
-              className={`p-stat-card ${statusFilter === s.key ? 'active' : ''}`}
-              onClick={() => { setStatusFilter(s.key); setPage(1); }}
-              style={{
-                cursor: 'pointer',
-                border: statusFilter === s.key ? '2px solid var(--primary)' : undefined,
-                transition: 'all 0.15s ease',
+              key={key}
+              className={`p-stat-card ${statusFilter === key ? 'active' : ''
+                }`}
+              onClick={() => {
+                setStatusFilter(key);
+                setPage(1);
               }}
-              title={`Filter by ${s.label}`}
+              style={{ cursor: 'pointer' }}
             >
-              <div className={`p-stat-icon ${s.color}`}>
-                {s.color === 'orange'
-                  ? <Clock size={18} />
-                  : s.color === 'green'
-                  ? <Check size={18} />
-                  : s.color === 'red'
-                  ? <X size={18} />
-                  : <Eye size={18} />
-                }
+              <div className={`p-stat-icon ${color}`}>
+                {color === 'orange' && <Clock size={18} />}
+                {color === 'green' && <Check size={18} />}
+                {color === 'red' && <X size={18} />}
+                {color === 'blue' && <Eye size={18} />}
               </div>
+
               <div>
-                <div className="p-stat-val">{s.val}</div>
-                <div className="p-stat-label">{s.label}</div>
+                <div className="p-stat-val">
+                  {value}
+                </div>
+                <div className="p-stat-label">
+                  {label}
+                </div>
               </div>
             </div>
           ))}
         </div>
 
+        {/* TABLE */}
+
         <div className="card">
-
           <div className="table-wrap">
-
             {loading ? (
-
               <div className="loading-state">
                 <div className="spinner" />
                 <p>Loading requests…</p>
               </div>
-
             ) : paginated.length === 0 ? (
-
               <div className="empty-state">
-
                 <Clock size={40} />
-
-                <h3>
-                  No permission requests
-                </h3>
-
-                <p>
-                  Submit a new request using the button above.
-                </p>
-
+                <h3>No permission requests</h3>
+                <p>No requests found.</p>
               </div>
-
             ) : (
-
               <table>
-
                 <thead>
-
                   <tr>
                     <th>Request ID</th>
                     <th>Name</th>
                     <th>Role</th>
                     <th>From – To</th>
                     <th>Reason</th>
-                    <th>Status</th>
+                    <th>Review Status</th>
                     <th>Action</th>
                   </tr>
-
                 </thead>
 
                 <tbody>
+                  {paginated.map((p) => {
+                    const status =
+                      getCoordinatorStatus(p);
 
-                  {paginated.map((p) => (
+                    return (
+                      <tr key={p._id}>
+                        <td
+                          style={{
+                            fontFamily: 'monospace',
+                            fontSize: 12,
+                            color: 'var(--primary)',
+                            fontWeight: 600,
+                          }}
+                        >
+                          PER-
+                          {String(p._id)
+                            .slice(-4)
+                            .toUpperCase()}
+                        </td>
 
-                    <tr key={p._id}>
+                        <td style={{ fontWeight: 600 }}>
+                          {p.memberName}
+                        </td>
 
-                      <td
-                        style={{
-                          fontFamily: 'monospace',
-                          fontSize: 12,
-                          color: 'var(--primary)',
-                          fontWeight: 600
-                        }}
-                      >
-                        PER-
-                        {String(p._id)
-                          .slice(-4)
-                          .toUpperCase()}
-                      </td>
+                        <td>
+                          <span
+                            style={{
+                              fontSize: 12,
+                              color:
+                                'var(--text-secondary)',
+                            }}
+                          >
+                            {p.role}
+                          </span>
+                        </td>
 
-                      <td style={{ fontWeight: 600 }}>
-                        {p.memberName}
-                      </td>
+                        <td style={{ fontSize: 12 }}>
+                          {formatDateRange(
+                            p.fromDate,
+                            p.toDate
+                          )}
+                        </td>
 
-                      <td>
-                        <span
+                        <td
                           style={{
                             fontSize: 12,
-                            color: 'var(--text-secondary)'
+                            color: 'var(--text-muted)',
                           }}
                         >
-                          {p.role}
-                        </span>
-                      </td>
+                          {p.permissionType}
+                        </td>
 
-                      <td style={{ fontSize: 12 }}>
-                        {formatDateRange(
-                          p.fromDate,
-                          p.toDate
-                        )}
-                      </td>
+                        {/* ONLY COORDINATOR STATUS */}
 
-                      <td
-                        style={{
-                          fontSize: 12,
-                          color: 'var(--text-muted)',
-                          maxWidth: 160,
-                          overflow: 'hidden',
-                          textOverflow: 'ellipsis',
-                          whiteSpace: 'nowrap'
-                        }}
-                      >
-                        {p.permissionType}
-                      </td>
-
-                      <td>
-                        <span
-                          className={`badge badge-${p.status}`}
-                        >
-                          {p.status}
-                        </span>
-                      </td>
-
-                      <td>
-
-                        <div
-                          style={{
-                            display: 'flex',
-                            gap: 6
-                          }}
-                        >
-
-                          <button
-                            className="btn btn-ghost btn-sm"
-                            onClick={() => setSelected(p)}
-                            title="View Details"
-                            style={{ color: 'var(--primary)' }}
+                        <td>
+                          <div
+                            style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: 8,
+                            }}
                           >
-                            <Eye size={14} />
-                          </button>
+                            <strong
+                              style={{ fontSize: 12 }}
+                            >
+                              Coordinator
+                            </strong>
 
-                          {isAdmin && p.status === 'pending' && (
-                            <>
-                              <button
-                                className="btn btn-ghost btn-sm"
-                                style={{ color: '#16a34a' }}
-                                onClick={() => handleReview(p._id, 'approved')}
-                                title="Approve Request"
-                                disabled={actionLoading}
-                              >
-                                <CheckCircle2 size={15} />
-                              </button>
-                              <button
-                                className="btn btn-ghost btn-sm"
-                                style={{ color: '#dc2626' }}
-                                onClick={() => handleReview(p._id, 'rejected')}
-                                title="Reject Request"
-                                disabled={actionLoading}
-                              >
-                                <XCircle size={15} />
-                              </button>
-                            </>
-                          )}
+                            <span
+                              className={`badge badge-${status}`}
+                            >
+                              {getStatusLabel(status)}
+                            </span>
+                          </div>
+                        </td>
 
-                        </div>
+                        {/* ACTION */}
 
-                      </td>
+                        <td>
+                          <div
+                            style={{
+                              display: 'flex',
+                              gap: 8,
+                              alignItems: 'center',
+                              flexWrap: 'wrap',
+                            }}
+                          >
+                            {/* EVERYONE CAN VIEW */}
 
-                    </tr>
+                            <button
+                              className="btn btn-ghost btn-sm"
+                              onClick={() =>
+                                setSelected(p)
+                              }
+                              title="View Request"
+                              style={{
+                                color:
+                                  'var(--primary)',
+                              }}
+                            >
+                              <Eye size={14} />
+                            </button>
 
-                  ))}
+                            {/* COORDINATOR ONLY */}
 
+                            {needsReview(p) && (
+                              <>
+                                <button
+                                  className="btn btn-danger"
+                                  disabled={actionLoading}
+                                  onClick={() =>
+                                    handleReview(
+                                      p._id,
+                                      'rejected'
+                                    )
+                                  }
+                                >
+                                  <XCircle size={15} />
+                                  Reject
+                                </button>
+
+                                <button
+                                  className="btn btn-success"
+                                  disabled={actionLoading}
+                                  onClick={() =>
+                                    handleReview(
+                                      p._id,
+                                      'approved'
+                                    )
+                                  }
+                                >
+                                  <CheckCircle2
+                                    size={15}
+                                  />
+                                  Approve
+                                </button>
+                              </>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
-
               </table>
-
             )}
-
           </div>
 
+          {/* PAGINATION */}
+
           {totalPages > 1 && (
-
             <div className="pagination">
-
               <button
                 className="page-num"
-                onClick={() =>
-                  setPage((p) =>
-                    Math.max(1, p - 1)
-                  )
-                }
                 disabled={page === 1}
+                onClick={() =>
+                  setPage((p) => Math.max(1, p - 1))
+                }
               >
                 <ChevronLeft size={14} />
               </button>
 
               {Array.from(
-                {
-                  length: totalPages
-                },
+                { length: totalPages },
                 (_, i) => i + 1
               ).map((n) => (
-
                 <button
                   key={n}
-                  className={`page-num ${
-                    page === n ? 'active' : ''
-                  }`}
+                  className={`page-num ${page === n ? 'active' : ''
+                    }`}
                   onClick={() => setPage(n)}
                 >
                   {n}
                 </button>
-
               ))}
 
               <button
                 className="page-num"
+                disabled={page === totalPages}
                 onClick={() =>
                   setPage((p) =>
-                    Math.min(
-                      totalPages,
-                      p + 1
-                    )
+                    Math.min(totalPages, p + 1)
                   )
                 }
-                disabled={page === totalPages}
               >
                 <ChevronRight size={14} />
               </button>
-
             </div>
-
           )}
-
         </div>
-
       </div>
+
+      {/* STUDENT NEW REQUEST */}
 
       {showForm && (
         <PermissionModal
@@ -450,25 +638,23 @@ export default function PermissionDashboard() {
         />
       )}
 
-      {selected && (
+      {/* REQUEST DETAILS */}
 
+      {selected && (
         <div
           className="modal-overlay"
-          onClick={(e) =>
-            e.target === e.currentTarget &&
-            setSelected(null)
-          }
+          onClick={(e) => {
+            if (e.target === e.currentTarget) {
+              setSelected(null);
+            }
+          }}
         >
-
           <div
             className="modal"
-            style={{ maxWidth: 560 }}
+            style={{ maxWidth: 600 }}
           >
-
             <div className="modal-header">
-
               <div>
-
                 <div className="modal-title">
                   Permission Request Details
                 </div>
@@ -479,22 +665,17 @@ export default function PermissionDashboard() {
                     .slice(-4)
                     .toUpperCase()}
                 </div>
-
               </div>
 
               <button
                 className="modal-close"
-                onClick={() =>
-                  setSelected(null)
-                }
+                onClick={() => setSelected(null)}
               >
                 <X size={18} />
               </button>
-
             </div>
 
             <div className="modal-body">
-
               {[
                 ['Member Name', selected.memberName],
                 ['Member ID', selected.memberId || '–'],
@@ -502,112 +683,411 @@ export default function PermissionDashboard() {
                 ['Role', selected.role],
                 [
                   'From – To',
-                  `${formatDateRange(
+                  formatDateRange(
                     selected.fromDate,
                     selected.toDate
-                  )}`
+                  ),
                 ],
                 [
                   'Permission Type',
-                  selected.permissionType
+                  selected.permissionType,
                 ],
                 [
                   'Duration',
                   selected.durationType?.replace(
                     '_',
                     ' '
-                  )
+                  ),
                 ],
                 ['Reason', selected.reason],
-                ['Status', selected.status],
-                selected.adminComment ? ['Admin Comment', selected.adminComment] : null,
-              ].filter(Boolean).map(([k, v]) => (
-
+                [
+                  'Coordinator Status',
+                  getCoordinatorStatus(selected),
+                ],
+              ].map(([label, value]) => (
                 <div
-                  key={k}
+                  key={label}
                   style={{
                     display: 'flex',
                     gap: 12,
-                    marginBottom: 12
+                    marginBottom: 12,
                   }}
                 >
-
                   <div
                     style={{
-                      width: 140,
+                      width: 150,
                       fontSize: 12,
                       fontWeight: 600,
                       color: 'var(--text-muted)',
-                      flexShrink: 0
                     }}
                   >
-                    {k}
+                    {label}
                   </div>
 
                   <div
                     style={{
                       fontSize: 13,
-                      color: 'var(--text-primary)'
+                      color: 'var(--text-primary)',
                     }}
                   >
-
-                    {k === 'Status'
-                      ? (
-                        <span
-                          className={`badge badge-${v}`}
-                        >
-                          {v}
-                        </span>
-                      )
-                      : v
-                    }
-
+                    {label === 'Coordinator Status' ? (
+                      <span
+                        className={`badge badge-${value}`}
+                      >
+                        {getStatusLabel(value)}
+                      </span>
+                    ) : (
+                      value
+                    )}
                   </div>
-
                 </div>
-
               ))}
 
+              {/* UPLOADED DOCUMENT */}
+
+              <div
+                style={{
+                  marginTop: 15,
+                  padding: 14,
+                  borderRadius: 10,
+                  background:
+                    'var(--bg-secondary)',
+                  border:
+                    '1px solid var(--border)',
+                }}
+              >
+                <strong
+                  style={{
+                    fontSize: 12,
+                    color: 'var(--text-muted)',
+                  }}
+                >
+                  SUPPORTING DOCUMENT
+                </strong>
+
+                {selected.attachment?.fileName ? (
+                  <div
+                    style={{
+                      display: 'flex',
+                      justifyContent:
+                        'space-between',
+                      alignItems: 'center',
+                      gap: 10,
+                      marginTop: 10,
+                    }}
+                  >
+                    <span
+                      style={{
+                        fontSize: 13,
+                        overflow: 'hidden',
+                        textOverflow:
+                          'ellipsis',
+                        whiteSpace: 'nowrap',
+                      }}
+                    >
+                      📄{' '}
+                      {selected.attachment
+                        .originalName ||
+                        selected.attachment.fileName}
+                    </span>
+
+                    <button
+                      className="btn btn-outline"
+                      onClick={() =>
+                        handleViewAttachment(
+                          selected._id
+                        )
+                      }
+                    >
+                      <Eye size={15} />
+                      View Document
+                    </button>
+                  </div>
+                ) : (
+                  <p
+                    style={{
+                      fontSize: 12,
+                      color: 'var(--text-muted)',
+                    }}
+                  >
+                    No supporting document uploaded.
+                  </p>
+                )}
+              </div>
+
+              {/* GENERATED PDF */}
+
+              <div
+                style={{
+                  marginTop: 12,
+                  padding: 14,
+                  borderRadius: 10,
+                  background:
+                    'var(--bg-secondary)',
+                  border:
+                    '1px solid var(--border)',
+                }}
+              >
+                <strong
+                  style={{
+                    fontSize: 12,
+                    color: 'var(--text-muted)',
+                  }}
+                >
+                  GENERATED PERMISSION PDF
+                </strong>
+
+                <button
+                  className="btn btn-outline"
+                  onClick={() =>
+                    handleViewPermissionPDF(
+                      selected._id
+                    )
+                  }
+                  style={{
+                    width: '100%',
+                    marginTop: 10,
+                    justifyContent: 'center',
+                  }}
+                >
+                  <Eye size={15} />
+                  View Generated Permission PDF
+                </button>
+              </div>
             </div>
 
-            <div className="modal-footer" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            {/* FOOTER */}
 
+            <div
+              className="modal-footer"
+              style={{
+                display: 'flex',
+                justifyContent:
+                  'space-between',
+                gap: 10,
+              }}
+            >
               <button
                 className="btn btn-outline"
-                onClick={() =>
-                  setSelected(null)
-                }
+                onClick={() => setSelected(null)}
               >
                 Close
               </button>
 
-              {isAdmin && selected.status === 'pending' && (
-                <div style={{ display: 'flex', gap: 8 }}>
+              {/* COORDINATOR ONLY */}
+
+              {needsReview(selected) && (
+                <div
+                  style={{
+                    display: 'flex',
+                    gap: 10,
+                  }}
+                >
                   <button
-                    className="btn btn-danger btn-sm"
+                    className="btn btn-danger"
                     disabled={actionLoading}
-                    onClick={() => handleReview(selected._id, 'rejected')}
+                    onClick={() =>
+                      handleReview(
+                        selected._id,
+                        'rejected'
+                      )
+                    }
                   >
-                    <XCircle size={14} /> Reject
+                    <XCircle size={16} />
+                    Reject
                   </button>
+
                   <button
-                    className="btn btn-success btn-sm"
+                    className="btn btn-success"
                     disabled={actionLoading}
-                    onClick={() => handleReview(selected._id, 'approved')}
+                    onClick={() =>
+                      handleReview(
+                        selected._id,
+                        'approved'
+                      )
+                    }
                   >
-                    <CheckCircle2 size={14} /> Approve
+                    <CheckCircle2 size={16} />
+                    Approve
                   </button>
                 </div>
               )}
-
             </div>
-
           </div>
-
         </div>
-
       )}
 
+      {/* COORDINATOR PENDING POPUP */}
+
+      {canReview && showPendingPopup && (
+        <div
+          className="modal-overlay"
+          style={{ zIndex: 2000 }}
+          onClick={(e) => {
+            if (e.target === e.currentTarget) {
+              setShowPendingPopup(false);
+            }
+          }}
+        >
+          <div
+            className="modal"
+            style={{
+              maxWidth: 620,
+              width: 'calc(100% - 32px)',
+            }}
+          >
+            <div className="modal-header">
+              <div>
+                <div className="modal-title">
+                  🔔 Pending Permission Requests
+                </div>
+
+                <div className="modal-subtitle">
+                  {pendingPermissions.length}{' '}
+                  request
+                  {pendingPermissions.length !== 1
+                    ? 's'
+                    : ''}{' '}
+                  waiting for review
+                </div>
+              </div>
+
+              <button
+                className="modal-close"
+                onClick={() =>
+                  setShowPendingPopup(false)
+                }
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            <div className="modal-body">
+              {pendingPermissions
+                .slice(0, 3)
+                .map((p) => (
+                  <div
+                    key={p._id}
+                    style={{
+                      padding: 15,
+                      marginBottom: 12,
+                      borderRadius: 10,
+                      border:
+                        '1px solid var(--border)',
+                      background:
+                        'var(--bg-secondary)',
+                    }}
+                  >
+                    <strong>
+                      {p.memberName}
+                    </strong>
+
+                    <div
+                      style={{
+                        fontSize: 12,
+                        color:
+                          'var(--text-muted)',
+                        margin: '5px 0 12px',
+                      }}
+                    >
+                      {p.permissionType} •{' '}
+                      {formatDateRange(
+                        p.fromDate,
+                        p.toDate
+                      )}
+                    </div>
+
+                    <div
+                      style={{
+                        display: 'flex',
+                        gap: 8,
+                        flexWrap: 'wrap',
+                      }}
+                    >
+                      <button
+                        className="btn btn-outline"
+                        onClick={() => {
+                          setShowPendingPopup(
+                            false
+                          );
+                          setSelected(p);
+                        }}
+                      >
+                        <Eye size={15} />
+                        View
+                      </button>
+
+                      {p.attachment?.fileName && (
+                        <button
+                          className="btn btn-outline"
+                          onClick={() =>
+                            handleViewAttachment(
+                              p._id
+                            )
+                          }
+                        >
+                          <Eye size={15} />
+                          Document
+                        </button>
+                      )}
+
+                      <button
+                        className="btn btn-danger"
+                        disabled={actionLoading}
+                        onClick={() =>
+                          handleReview(
+                            p._id,
+                            'rejected'
+                          )
+                        }
+                      >
+                        <XCircle size={15} />
+                        Reject
+                      </button>
+
+                      <button
+                        className="btn btn-success"
+                        disabled={actionLoading}
+                        onClick={() =>
+                          handleReview(
+                            p._id,
+                            'approved'
+                          )
+                        }
+                      >
+                        <CheckCircle2 size={15} />
+                        Approve
+                      </button>
+                    </div>
+                  </div>
+                ))}
+
+              {pendingPermissions.length === 0 && (
+                <div
+                  style={{
+                    textAlign: 'center',
+                    padding: 20,
+                    color: 'var(--text-muted)',
+                  }}
+                >
+                  No pending requests.
+                </div>
+              )}
+            </div>
+
+            <div className="modal-footer">
+              <button
+                className="btn btn-outline"
+                onClick={() =>
+                  setShowPendingPopup(false)
+                }
+              >
+                Review Later
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }

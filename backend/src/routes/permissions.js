@@ -7,6 +7,8 @@ const {
     getPermissions,
     getPermissionById,
     updatePermissionStatus,
+    downloadPermissionPDF,
+    downloadPermissionAttachment,
 } = require('../controllers/permissionController');
 
 const {
@@ -14,58 +16,77 @@ const {
     authorizeRole,
 } = require('../middleware/auth');
 
+const permissionUpload = require('../middleware/permissionUpload');
+
 // =====================================================
-// STUDENT: CREATE PERMISSION REQUEST
-// POST /api/permissions
+// CREATE PERMISSION REQUEST
+// STUDENT ONLY
 // =====================================================
 
 router.post(
     '/',
     authenticateUser,
     authorizeRole('student'),
+    permissionUpload.single('attachment'),
     createPermission
 );
 
 // =====================================================
 // GET PERMISSION REQUESTS
-// GET /api/permissions
-// (Students get their own; Admins/Coordinators get all)
+// STUDENT / ADMIN / COORDINATOR
 // =====================================================
 
 router.get(
     '/',
     authenticateUser,
+    authorizeRole(
+        'student',
+        'admin',
+        'coordinator'
+    ),
     getPermissions
 );
 
 // =====================================================
-// ADMIN / COORDINATOR: UPDATE PERMISSION STATUS
-// PUT /api/permissions/:id
-// =====================================================
-
-router.put(
-    '/:id/status',
-    authenticateUser,
-    authorizeRole('admin', 'coordinator'),
-    updatePermissionStatus
-);
-
-router.put(
-    '/:id',
-    authenticateUser,
-    authorizeRole('admin', 'coordinator'),
-    updatePermissionStatus
-);
-
-// =====================================================
-// AUTHENTICATED USER: VIEW ONE PERMISSION REQUEST
-// GET /api/permissions/:id
+// GET SINGLE PERMISSION
 // =====================================================
 
 router.get(
     '/:id',
     authenticateUser,
     getPermissionById
+);
+
+// =====================================================
+// DOWNLOAD GENERATED PERMISSION PDF
+// =====================================================
+
+router.get(
+    '/:id/pdf',
+    authenticateUser,
+    downloadPermissionPDF
+);
+
+// =====================================================
+// VIEW / DOWNLOAD SUPPORTING DOCUMENT
+// =====================================================
+
+router.get(
+    '/:id/attachment',
+    authenticateUser,
+    downloadPermissionAttachment
+);
+
+// =====================================================
+// APPROVE / REJECT PERMISSION
+// COORDINATOR ONLY
+// =====================================================
+
+router.put(
+    '/:id',
+    authenticateUser,
+    authorizeRole('coordinator'),
+    updatePermissionStatus
 );
 
 module.exports = router;
