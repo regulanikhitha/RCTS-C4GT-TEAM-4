@@ -1,11 +1,11 @@
 import React from 'react';
-import { Search } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { Search, Menu } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
-import { Input } from './ui/input';
+import { useSidebar } from '../context/SidebarContext';
 
 export default function TopBar({ title, hideSearch = false }) {
   const { user, adminSearch, setAdminSearch } = useAuth();
+  const { toggleSidebar } = useSidebar();
   const isAdmin = user?.role === 'admin';
 
   const initials = user?.name
@@ -18,14 +18,22 @@ export default function TopBar({ title, hideSearch = false }) {
 
   return (
     <header className="topbar">
+      <button
+        type="button"
+        className="mobile-menu-btn"
+        onClick={toggleSidebar}
+        aria-label="Open navigation menu"
+      >
+        <Menu size={20} />
+      </button>
+
       <h1 className="topbar-title">{title}</h1>
 
       {isAdmin && !hideSearch && (
         <form className="topbar-search" onSubmit={handleSearch}>
           <Search size={14} />
-          <Input
+          <input
             type="text"
-            className="topbar-search-input"
             placeholder="Search members, requests..."
             value={adminSearch}
             onChange={e => setAdminSearch(e.target.value)}

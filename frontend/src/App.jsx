@@ -2,6 +2,7 @@ import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import { AuthProvider, useAuth } from './context/AuthContext';
+import { SidebarProvider } from './context/SidebarContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import Sidebar from './components/Sidebar';
 
@@ -102,26 +103,28 @@ export default function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
-        <Toaster
-          position="top-right"
-          toastOptions={{
-            style: { fontFamily: 'Inter, sans-serif', fontSize: 13, borderRadius: 8 },
-            duration: 3000,
-          }}
-        />
-        <Routes>
-          <Route path="/" element={<Landing />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/forgot-password" element={<ForgotPassword />} />
-          <Route
-            path="/*"
-            element={
-              <ProtectedRoute>
-                <AppLayout />
-              </ProtectedRoute>
-            }
+        <SidebarProvider>
+          <Toaster
+            position="top-right"
+            toastOptions={{
+              style: { fontFamily: 'Inter, sans-serif', fontSize: 13, borderRadius: 8 },
+              duration: 3000,
+            }}
           />
-        </Routes>
+          <Routes>
+            <Route path="/" element={<Landing />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route
+              path="/*"
+              element={
+                <ProtectedRoute>
+                  <AppLayout />
+                </ProtectedRoute>
+              }
+            />
+          </Routes>
+        </SidebarProvider>
       </AuthProvider>
     </BrowserRouter>
   );

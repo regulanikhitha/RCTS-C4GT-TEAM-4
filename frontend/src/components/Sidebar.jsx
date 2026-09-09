@@ -9,9 +9,10 @@ import {
   BarChart2,
   Bell,
   LogOut,
+  X,
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
-import { Button } from './ui/button';
+import { useSidebar } from '../context/SidebarContext';
 
 const NAV = [
   { label: 'Admin Dashboard', icon: LayoutDashboard, to: '/admin-dashboard', roles: ['admin'] },
@@ -26,52 +27,75 @@ const NAV = [
 
 export default function Sidebar() {
   const { logout, user } = useAuth();
+  const { isOpen, closeSidebar } = useSidebar();
   const navigate = useNavigate();
   const visibleNav = NAV.filter((item) => item.roles.includes(user?.role || 'admin'));
 
   const handleLogout = () => {
+    closeSidebar();
     logout();
     navigate('/login');
   };
 
   const handleLogoClick = () => {
+    closeSidebar();
     const defaultRoute = user?.role === 'student' ? '/student-dashboard' : '/admin-dashboard';
     navigate(defaultRoute);
   };
 
   return (
-    <aside className="sidebar">
-      {/* Logo — clicking navigates to Permission Portal */}
-      <div className="sidebar-logo" onClick={handleLogoClick} title="Go to Permission Portal">
-        <div className="sidebar-logo-icon">
-          <img src="/logo.svg" width="28" height="28" alt="C4GT HUB logo" />
-        </div>
-        <div className="sidebar-logo-text">
-          <span className="brand">C4GT HUB</span>
-          <span className="sub">@KIET</span>
-        </div>
-      </div>
+    <>
+      {/* Mobile Drawer Overlay Backdrop */}
+      <div
+        className={`sidebar-backdrop ${isOpen ? 'active' : ''}`}
+        onClick={closeSidebar}
+        aria-hidden="true"
+      />
 
-      <nav className="sidebar-nav">
-        {visibleNav.map(({ label, icon: Icon, to }) => (
-          <NavLink
-            key={to}
-            to={to}
-            end={to === '/'}
-            className={({ isActive }) => `nav-link${isActive ? ' active' : ''}`}
+      <aside className={`sidebar ${isOpen ? 'open' : ''}`}>
+        {/* Logo — clicking navigates to default dashboard */}
+        <div className="sidebar-logo">
+          <div className="sidebar-logo-main" onClick={handleLogoClick} title="Go to Dashboard">
+            <div className="sidebar-logo-icon">
+              <img src="/logo.svg" width="28" height="28" alt="C4GT HUB logo" />
+            </div>
+            <div className="sidebar-logo-text">
+              <span className="brand">C4GT HUB</span>
+              <span className="sub">@KIET</span>
+            </div>
+          </div>
+          <button
+            type="button"
+            className="sidebar-close-btn"
+            onClick={closeSidebar}
+            aria-label="Close navigation sidebar"
           >
-            <Icon size={16} />
-            {label}
-          </NavLink>
-        ))}
-      </nav>
+            <X size={18} />
+          </button>
+        </div>
 
-      <div className="sidebar-footer">
-        <Button variant="ghost" className="nav-link w-full" onClick={handleLogout} style={{ background: 'none', border: 'none', width: '100%', textAlign: 'left' }}>
-          <LogOut size={16} />
-          Logout
-        </Button>
-      </div>
-    </aside>
+        <nav className="sidebar-nav">
+          {visibleNav.map(({ label, icon: Icon, to }) => (
+            <NavLink
+              key={to}
+              to={to}
+              end={to === '/'}
+              className={({ isActive }) => `nav-link${isActive ? ' active' : ''}`}
+              onClick={closeSidebar}
+            >
+              <Icon size={16} />
+              {label}
+            </NavLink>
+          ))}
+        </nav>
+
+        <div className="sidebar-footer">
+          <button className="nav-link w-full" onClick={handleLogout} style={{ background: 'none', border: 'none', width: '100%', textAlign: 'left' }}>
+            <LogOut size={16} />
+            Logout
+          </button>
+        </div>
+      </aside>
+    </>
   );
 }
