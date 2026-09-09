@@ -1,5 +1,5 @@
 import React, { useRef, useState } from 'react';
-import { X, Upload, Send, FileText } from 'lucide-react';
+import { X, Upload, Send, FileText, CheckCircle2 } from 'lucide-react';
 import api from '../api/axios';
 import toast from 'react-hot-toast';
 import { Button } from './ui/button';
@@ -162,19 +162,14 @@ export default function PermissionModal({ onClose, onSuccess }) {
         formData.append('attachment', selectedFile);
       }
 
-      console.log(
-        '📤 Submitting permission request...'
-      );
+      console.log('Submitting permission request...');
 
       const response = await api.post(
         '/permissions',
         formData
       );
 
-      console.log(
-        '✅ Permission submitted successfully:',
-        response.data
-      );
+      console.log('Permission submitted successfully:', response.data);
 
       // =================================================
       // SUCCESS
@@ -194,10 +189,7 @@ export default function PermissionModal({ onClose, onSuccess }) {
       }
 
     } catch (error) {
-      console.error(
-        '❌ Permission submission error:',
-        error
-      );
+      console.error('Permission submission error:', error);
 
       if (error.response?.status === 413) {
         toast.error(
@@ -298,12 +290,10 @@ export default function PermissionModal({ onClose, onSuccess }) {
                 alignItems: 'center',
                 justifyContent: 'center',
                 marginBottom: 22,
-                fontSize: 42,
                 color: 'var(--primary)',
-                fontWeight: 700,
               }}
             >
-              ✓
+              <CheckCircle2 size={42} strokeWidth={1.8} />
             </div>
 
             {/* TITLE */}

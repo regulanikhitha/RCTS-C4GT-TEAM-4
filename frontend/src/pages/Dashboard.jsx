@@ -9,21 +9,10 @@ import {
   FileText,
   UserPlus,
 } from 'lucide-react';
-import {
-  Bar,
-  BarChart,
-  Cell,
-  Pie,
-  PieChart,
-  ResponsiveContainer,
-  XAxis,
-  YAxis,
-} from 'recharts';
-
 import TopBar from '../components/TopBar';
 import StatCard from '../components/StatCard';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
-import { ChartContainer, ChartTooltipContent } from '../components/ui/chart';
+import { AttendanceBarChart, AttendanceDoughnutChart, ChartContainer } from '../components/ui/chart';
 import api from '../api/axios';
 import { useAuth } from '../context/AuthContext';
 import { Button } from '../components/ui/button';
@@ -256,7 +245,7 @@ export default function Dashboard() {
         <div className="page-header">
           <h1>
             Welcome back,{' '}
-            {user?.name?.split(' ')[0] || 'Coordinator'}! 👋
+            {user?.name?.split(' ')[0] || 'Coordinator'}!
           </h1>
 
           <p>
@@ -779,68 +768,7 @@ export default function Dashboard() {
                   }}
                 >
 
-                  <ResponsiveContainer
-                    width="100%"
-                    height="100%"
-                  >
-
-                    <BarChart
-                      data={chartData}
-                      margin={{
-                        top: 8,
-                        right: 8,
-                        left: -20,
-                        bottom: 0,
-                      }}
-                    >
-
-                      <XAxis
-                        dataKey="name"
-                        tick={{
-                          fontSize: 11,
-                        }}
-                        axisLine={false}
-                        tickLine={false}
-                      />
-
-                      <YAxis
-                        allowDecimals={false}
-                        tick={{
-                          fontSize: 11,
-                        }}
-                        axisLine={false}
-                        tickLine={false}
-                      />
-
-                      <ChartTooltipContent />
-
-                      <Bar
-                        dataKey="present"
-                        name="Present"
-                        fill="var(--chart-present)"
-                        radius={[
-                          4,
-                          4,
-                          0,
-                          0,
-                        ]}
-                      />
-
-                      <Bar
-                        dataKey="absent"
-                        name="Absent"
-                        fill="var(--chart-absent)"
-                        radius={[
-                          4,
-                          4,
-                          0,
-                          0,
-                        ]}
-                      />
-
-                    </BarChart>
-
-                  </ResponsiveContainer>
+                  <AttendanceBarChart data={chartData} />
 
                 </ChartContainer>
               )}
@@ -874,37 +802,7 @@ export default function Dashboard() {
                 height={220}
               >
 
-                <ResponsiveContainer
-                  width="100%"
-                  height="100%"
-                >
-
-                  <PieChart>
-
-                    <Pie
-                      data={statusData}
-                      dataKey="value"
-                      nameKey="name"
-                      innerRadius={62}
-                      outerRadius={84}
-                      paddingAngle={4}
-                      stroke="none"
-                    >
-
-                      {statusData.map((entry) => (
-                        <Cell
-                          key={entry.name}
-                          fill={entry.color}
-                        />
-                      ))}
-
-                    </Pie>
-
-                    <ChartTooltipContent />
-
-                  </PieChart>
-
-                </ResponsiveContainer>
+                <AttendanceDoughnutChart data={statusData} />
 
                 <div className="donut-total">
 

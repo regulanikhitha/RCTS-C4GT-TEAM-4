@@ -18,6 +18,10 @@ import {
   Sparkles,
   Info,
   ChevronRight,
+  CalendarDays,
+  PartyPopper,
+  Code2,
+  Pin,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useAuth } from '../context/AuthContext';
@@ -417,16 +421,16 @@ export default function Notifications() {
   const getTypeBadgeStyle = (type) => {
     switch (type) {
       case 'Holiday':
-        return { bg: '#fce7f3', color: '#9d174d', border: '#fbcfe8', icon: '🌴' };
+        return { bg: '#fce7f3', color: '#9d174d', border: '#fbcfe8', icon: CalendarDays };
       case 'Event':
-        return { bg: '#e0e7ff', color: '#3730a3', border: '#c7d2fe', icon: '🎉' };
+        return { bg: '#e0e7ff', color: '#3730a3', border: '#c7d2fe', icon: PartyPopper };
       case 'Coding Contest':
-        return { bg: '#fef3c7', color: '#92400e', border: '#fde68a', icon: '💻' };
+        return { bg: '#fef3c7', color: '#92400e', border: '#fde68a', icon: Code2 };
       case 'Mentor Meeting':
-        return { bg: '#ccfbf1', color: '#115e59', border: '#99f6e4', icon: '👥' };
+        return { bg: '#ccfbf1', color: '#115e59', border: '#99f6e4', icon: Users };
       case 'Other':
       default:
-        return { bg: '#f3e8ff', color: '#6b21a8', border: '#e9d5ff', icon: '📌' };
+        return { bg: '#f3e8ff', color: '#6b21a8', border: '#e9d5ff', icon: Pin };
     }
   };
 
@@ -562,7 +566,7 @@ export default function Notifications() {
                         borderColor: typeStyle.border,
                       }}
                     >
-                      <span className="type-emoji">{typeStyle.icon}</span>
+                      <typeStyle.icon size={14} strokeWidth={2} />
                       {item.type}
                     </span>
 

@@ -1,17 +1,83 @@
-import React, { useState, useEffect } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import TopBar from '../components/TopBar';
 import { Badge } from '../components/ui/badge';
 import { Button } from '../components/ui/button';
 import { Bell, Megaphone, Calendar, Users, X, ArrowRight, Sparkles, CheckCircle2 } from 'lucide-react';
 import api from '../api/axios';
+import { AttendanceDoughnutChart, AttendanceTrendChart, ChartContainer } from '../components/ui/chart';
+import { useAuth } from '../context/AuthContext';
 
 export default function StudentDashboard() {
   const navigate = useNavigate();
+  const { user } = useAuth();
   
   // Popup Notification State
   const [latestNotification, setLatestNotification] = useState(null);
   const [showNotificationPopup, setShowNotificationPopup] = useState(false);
+  const [attendance, setAttendance] = useState({ stats: null, records: [] });
+  const [attendancePeriod, setAttendancePeriod] = useState('weekly');
+  const [attendanceLoading, setAttendanceLoading] = useState(true);
+
+  useEffect(() => {
+    const studentIdentifier = user?.memberId || user?.email;
+    if (!studentIdentifier) return undefined;
+
+    let isMounted = true;
+    setAttendanceLoading(true);
+    api.get(`/attendance/member/${encodeURIComponent(studentIdentifier)}`)
+      .then(({ data }) => {
+        if (isMounted) setAttendance({ stats: data.stats || null, records: data.records || [] });
+      })
+      .catch(() => {
+        if (isMounted) setAttendance({ stats: null, records: [] });
+      })
+      .finally(() => {
+        if (isMounted) setAttendanceLoading(false);
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [user]);
+
+  const attendanceStats = attendance.stats || {};
+  const attendancePercentage = Number(attendanceStats.attendancePercentage || 0);
+  const presentCount = Number(attendanceStats.presentCount || 0);
+  const absentCount = Number(attendanceStats.absentCount || 0);
+
+  const trendData = useMemo(() => {
+    const recordsByDate = attendance.records.reduce((result, record) => {
+      result[record.date?.slice(0, 10)] = record.status;
+      return result;
+    }, {});
+    const today = new Date();
+    const days = attendancePeriod === 'weekly'
+      ? 7
+      : new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate();
+
+    return Array.from({ length: days }, (_, index) => {
+      const date = attendancePeriod === 'weekly'
+        ? new Date(today.getFullYear(), today.getMonth(), today.getDate() - (days - index - 1))
+        : new Date(today.getFullYear(), today.getMonth(), index + 1);
+      const dateKey = date.toISOString().slice(0, 10);
+      const status = recordsByDate[dateKey];
+      return {
+        name: attendancePeriod === 'weekly'
+          ? date.toLocaleDateString('en-US', { weekday: 'short' })
+          : String(index + 1),
+        status,
+        value: status ? 1 : 0,
+        present: status === 'Present' ? 1 : 0,
+        absent: status === 'Absent' ? 1 : 0,
+      };
+    });
+  }, [attendance.records, attendancePeriod]);
+
+  const percentageData = [
+    { name: 'Present', value: presentCount, color: '#0f766e' },
+    { name: 'Absent', value: absentCount, color: '#e11d48' },
+  ];
 
   useEffect(() => {
     let isMounted = true;
@@ -109,12 +175,52 @@ export default function StudentDashboard() {
               <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: '0.08em', color: '#0f766e', textTransform: 'uppercase' }}>
                 My Attendance
               </div>
-              <h3 style={{ margin: '8px 0 4px', fontSize: 24, color: '#1e293b' }}>91%</h3>
-              <p style={{ margin: 0, color: '#64748b', fontSize: 14 }}>Weekly attendance overview</p>
+              <h3 style={{ margin: '8px 0 4px', fontSize: 24, color: '#1e293b' }}>
+                {attendanceLoading ? '...' : `${attendancePercentage}%`}
+              </h3>
+              <p style={{ margin: 0, color: '#64748b', fontSize: 14 }}>Your attendance overview</p>
             </div>
             <div style={{ textAlign: 'right', color: '#0f766e', fontSize: 14, fontWeight: 700 }}>
-              5 present
-              <div style={{ color: '#64748b', fontSize: 12, fontWeight: 500, marginTop: 4 }}>1 missed</div>
+              {presentCount} present
+              <div style={{ color: '#64748b', fontSize: 12, fontWeight: 500, marginTop: 4 }}>{absentCount} missed</div>
+            </div>
+          </div>
+
+          <div className="student-attendance-chart-grid">
+            <div className="student-attendance-trend">
+              <div className="student-chart-heading">
+                <div>
+                  <strong>Attendance activity</strong>
+                  <span>{attendancePeriod === 'weekly' ? 'Last 7 days' : 'Current month'}</span>
+                </div>
+                <div className="chart-period-toggle" role="group" aria-label="Attendance period">
+                  <button className={attendancePeriod === 'weekly' ? 'active' : ''} onClick={() => setAttendancePeriod('weekly')}>Weekly</button>
+                  <button className={attendancePeriod === 'monthly' ? 'active' : ''} onClick={() => setAttendancePeriod('monthly')}>Monthly</button>
+                </div>
+              </div>
+              <ChartContainer height={250} className="student-trend-chart">
+                <AttendanceTrendChart data={trendData} />
+              </ChartContainer>
+            </div>
+
+            <div className="student-attendance-percentage">
+              <div className="student-chart-heading">
+                <div>
+                  <strong>Attendance percentage</strong>
+                  <span>All recorded days</span>
+                </div>
+              </div>
+              <ChartContainer height={220} className="student-percentage-chart">
+                <AttendanceDoughnutChart data={percentageData} />
+                <div className="student-donut-total">
+                  <strong>{attendancePercentage}%</strong>
+                  <span>attendance</span>
+                </div>
+              </ChartContainer>
+              <div className="student-percentage-legend">
+                <span><i style={{ background: '#0f766e' }} />Present <b>{presentCount}</b></span>
+                <span><i style={{ background: '#e11d48' }} />Absent <b>{absentCount}</b></span>
+              </div>
             </div>
           </div>
 
@@ -160,7 +266,7 @@ export default function StudentDashboard() {
                 </div>
                 <div>
                   <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 800, color: '#1e1b4b' }}>
-                    📢 New Hub Announcement!
+                    New Hub Announcement
                   </h3>
                   <span style={{ fontSize: '12px', color: '#4c1d95' }}>
                     Broadcasted to All Members (81)

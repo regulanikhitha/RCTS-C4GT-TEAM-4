@@ -10,6 +10,8 @@ import {
   CheckCircle2,
   XCircle,
   Filter,
+  Bell,
+  FileText,
 } from 'lucide-react';
 
 import TopBar from '../components/TopBar';
@@ -71,9 +73,9 @@ export default function PermissionDashboard() {
     permission?.coordinatorStatus || 'pending';
 
   const getStatusLabel = (status) => {
-    if (status === 'approved') return '✅ Approved';
-    if (status === 'rejected') return '❌ Rejected';
-    return '⏳ Pending';
+    if (status === 'approved') return <><CheckCircle2 size={14} /> Approved</>;
+    if (status === 'rejected') return <><XCircle size={14} /> Rejected</>;
+    return <><Clock size={14} /> Pending</>;
   };
 
   const needsReview = (permission) =>
@@ -775,7 +777,7 @@ export default function PermissionDashboard() {
                         whiteSpace: 'nowrap',
                       }}
                     >
-                      📄{' '}
+                      <FileText size={15} />{' '}
                       {selected.attachment
                         .originalName ||
                         selected.attachment.fileName}
@@ -929,7 +931,10 @@ export default function PermissionDashboard() {
             <div className="modal-header">
               <div>
                 <div className="modal-title">
-                  🔔 Pending Permission Requests
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+                    <Bell size={17} />
+                    Pending Permission Requests
+                  </span>
                 </div>
 
                 <div className="modal-subtitle">

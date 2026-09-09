@@ -42,15 +42,7 @@ export default function Landing() {
     };
 
     const role = routeMap[route] || 'admin';
-    const demoUser = {
-      name: `${labelFromRole(role)} User`,
-      email: `${role}@c4gt.com`,
-      role,
-    };
-
-    localStorage.setItem('c4gt_user', JSON.stringify(demoUser));
-    localStorage.setItem('c4gt_token', `demo-${role}-token`);
-    navigate(route);
+    loginAsRole(role, route, `${labelFromRole(role)} User`);
   };
 
   const handleSubmit = (event) => {

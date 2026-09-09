@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { Eye, EyeOff, Lock, Mail } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
@@ -22,15 +22,6 @@ export default function Login() {
   const [form, setForm] = useState({ email: '', password: '' });
   const [showPass, setShowPass] = useState(false);
   const [error, setError] = useState('');
-
-  useEffect(() => {
-    if (selectedRole) {
-      setForm((current) => ({
-        ...current,
-        email: current.email || `${selectedRole}@c4gt.com`,
-      }));
-    }
-  }, [selectedRole]);
 
   const handleCancel = () => {
     localStorage.removeItem('c4gt_login_role');
@@ -75,7 +66,7 @@ export default function Login() {
           <div className="login-logo-badge">
             <img src="/logo.svg" width="56" height="56" alt="C4GT HUB logo" />
           </div>
-          <h1 className="login-heading">{selectedRole ? `${roleLabelMap[selectedRole] || 'Role'} Login` : 'Welcome Back 👋'}</h1>
+          <h1 className="login-heading">{selectedRole ? `${roleLabelMap[selectedRole] || 'Role'} Login` : 'Welcome Back'}</h1>
           <p className="login-sub">
             {selectedRole
               ? `Use the ${roleLabelMap[selectedRole] || 'selected'} account credentials to continue.`

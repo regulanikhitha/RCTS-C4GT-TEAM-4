@@ -9,7 +9,7 @@ import {
 
 import TopBar from '../components/TopBar';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
-import { ChartContainer, ChartTooltipContent } from '../components/ui/chart';
+import { AttendanceBarChart, ChartContainer } from '../components/ui/chart';
 import api from '../api/axios';
 import toast from 'react-hot-toast';
 import { useAuth } from '../context/AuthContext';
@@ -17,16 +17,6 @@ import { Badge } from '../components/ui/badge';
 import { Button } from '../components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
 import { Tabs, TabsList, TabsTrigger } from '../components/ui/tabs';
-
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  ResponsiveContainer,
-  Cell,
-  Legend,
-} from 'recharts';
 
 const TEAMS = [
   'All Teams',
@@ -838,87 +828,7 @@ export default function AttendanceDashboard() {
                 height={200}
               >
 
-                <ResponsiveContainer
-                  width="100%"
-                  height="100%"
-                >
-
-                  <BarChart
-                    data={chartData}
-                    margin={{
-                      top: 5,
-                      right: 20,
-                      left: 0,
-                      bottom: 5,
-                    }}
-                  >
-
-                    <XAxis
-                      dataKey="name"
-                      tick={{
-                        fontSize: 12,
-                      }}
-                      axisLine={false}
-                      tickLine={false}
-                    />
-
-                    <YAxis
-                      tick={{
-                        fontSize: 12,
-                      }}
-                      axisLine={false}
-                      tickLine={false}
-                    />
-
-                    <ChartTooltipContent />
-
-                    <Legend />
-
-                    <Bar
-                      dataKey="present"
-                      name="Present"
-                      fill="var(--chart-present)"
-                      radius={[
-                        4,
-                        4,
-                        0,
-                        0,
-                      ]}
-                    >
-                      {chartData.map(
-                        (_, i) => (
-                          <Cell
-                            key={i}
-                            fill="var(--chart-present)"
-                          />
-                        )
-                      )}
-                    </Bar>
-
-                    <Bar
-                      dataKey="absent"
-                      name="Absent"
-                      fill="var(--chart-absent)"
-                      radius={[
-                        4,
-                        4,
-                        0,
-                        0,
-                      ]}
-                    >
-                      {chartData.map(
-                        (_, i) => (
-                          <Cell
-                            key={i}
-                            fill="var(--chart-absent)"
-                          />
-                        )
-                      )}
-                    </Bar>
-
-                  </BarChart>
-
-                </ResponsiveContainer>
+                <AttendanceBarChart data={chartData} showLegend />
 
               </ChartContainer>
 

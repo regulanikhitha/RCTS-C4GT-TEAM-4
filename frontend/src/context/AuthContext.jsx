@@ -3,30 +3,6 @@ import api from '../api/axios';
 
 const AuthContext = createContext(null);
 
-const DEMO_USERS = {
-  'admin@c4gt.com': {
-    email: 'admin@c4gt.com',
-    password: 'Admin@123',
-    role: 'admin',
-    name: 'System Administrator',
-    redirect: '/admin-dashboard',
-  },
-  'meenachittuluri@gmail.com': {
-    email: 'meenachittuluri@gmail.com',
-    password: '23JN1A45C0',
-    role: 'coordinator',
-    name: 'Chittuluri Meena',
-    redirect: '/coordinator-dashboard',
-  },
-  'bhavanisanakrdavuluri1094@gmail.com': {
-    email: 'bhavanisanakrdavuluri1094@gmail.com',
-    password: '23B21A4268',
-    role: 'student',
-    name: 'Bhavani Sankar Davuluri',
-    redirect: '/student-dashboard',
-  },
-};
-
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(() => {
     try {
@@ -87,31 +63,6 @@ export function AuthProvider({ children }) {
         user: data.user,
       };
     } catch (err) {
-      // Demo fallback
-      const demoUser = DEMO_USERS[normalizedEmail];
-
-      if (demoUser && demoUser.password === password) {
-        const userData = {
-          email: demoUser.email,
-          name: demoUser.name,
-          role: demoUser.role,
-        };
-
-        localStorage.setItem('c4gt_token', 'demo-token');
-        localStorage.setItem(
-          'c4gt_user',
-          JSON.stringify(userData)
-        );
-
-        setUser(userData);
-
-        return {
-          ok: true,
-          redirect: demoUser.redirect,
-          user: userData,
-        };
-      }
-
       return {
         ok: false,
         message:
