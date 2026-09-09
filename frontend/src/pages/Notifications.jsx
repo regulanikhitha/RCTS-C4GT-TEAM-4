@@ -23,6 +23,13 @@ import toast from 'react-hot-toast';
 import { useAuth } from '../context/AuthContext';
 import TopBar from '../components/TopBar';
 import api from '../api/axios';
+import { Badge } from '../components/ui/badge';
+import { Button } from '../components/ui/button';
+import { Input } from '../components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
+import { Tabs, TabsList, TabsTrigger } from '../components/ui/tabs';
+import { Textarea } from '../components/ui/textarea';
+import { Label } from '../components/ui/label';
 
 // Initial sample data for rich out-of-the-box demonstration
 const INITIAL_NOTIFICATIONS = [
@@ -460,13 +467,13 @@ export default function Notifications() {
           </div>
 
           {isAdminOrCoordinator && (
-            <button
+            <Button
               className="btn-create-notification"
               onClick={handleOpenCreateModal}
             >
               <Plus size={18} />
               <span>Create Notification</span>
-            </button>
+            </Button>
           )}
 
           {isStudent && (
@@ -490,61 +497,24 @@ export default function Notifications() {
         {/* Filter & Control Toolbar */}
         <div className="notif-toolbar">
           {/* Tabs */}
-          <div className="notif-tabs">
-            <button
-              className={`tab-item ${activeTab === 'all' ? 'active' : ''}`}
-              onClick={() => setActiveTab('all')}
-            >
-              All
-              <span className="tab-badge">{counts.all}</span>
-            </button>
-            <button
-              className={`tab-item ${activeTab === 'today' ? 'active' : ''}`}
-              onClick={() => setActiveTab('today')}
-            >
-              Today
-              <span className="tab-badge today-badge">{counts.today}</span>
-            </button>
-            <button
-              className={`tab-item ${activeTab === 'upcoming' ? 'active' : ''}`}
-              onClick={() => setActiveTab('upcoming')}
-            >
-              Upcoming
-              <span className="tab-badge upcoming-badge">{counts.upcoming}</span>
-            </button>
-            <button
-              className={`tab-item ${activeTab === 'past' ? 'active' : ''}`}
-              onClick={() => setActiveTab('past')}
-            >
-              Past
-              <span className="tab-badge past-badge">{counts.past}</span>
-            </button>
-            {isAdminOrCoordinator && (
-              <button
-                className={`tab-item ${activeTab === 'drafts' ? 'active' : ''}`}
-                onClick={() => setActiveTab('drafts')}
-              >
-                Drafts
-                <span className="tab-badge draft-badge">{counts.drafts}</span>
-              </button>
-            )}
-          </div>
+          <Tabs value={activeTab} onValueChange={setActiveTab}>
+            <TabsList className="notif-tabs">
+              <TabsTrigger value="all" className={`tab-item ${activeTab === 'all' ? 'active' : ''}`}>All <span className="tab-badge">{counts.all}</span></TabsTrigger>
+              <TabsTrigger value="today" className={`tab-item ${activeTab === 'today' ? 'active' : ''}`}>Today <span className="tab-badge today-badge">{counts.today}</span></TabsTrigger>
+              <TabsTrigger value="upcoming" className={`tab-item ${activeTab === 'upcoming' ? 'active' : ''}`}>Upcoming <span className="tab-badge upcoming-badge">{counts.upcoming}</span></TabsTrigger>
+              <TabsTrigger value="past" className={`tab-item ${activeTab === 'past' ? 'active' : ''}`}>Past <span className="tab-badge past-badge">{counts.past}</span></TabsTrigger>
+              {isAdminOrCoordinator && <TabsTrigger value="drafts" className={`tab-item ${activeTab === 'drafts' ? 'active' : ''}`}>Drafts <span className="tab-badge draft-badge">{counts.drafts}</span></TabsTrigger>}
+            </TabsList>
+          </Tabs>
 
           {/* Category Select */}
           <div className="notif-filters">
             <div className="type-select-box">
               <Filter size={15} className="filter-icon" />
-              <select
-                value={selectedType}
-                onChange={(e) => setSelectedType(e.target.value)}
-              >
-                <option value="All">All Types</option>
-                {NOTIFICATION_TYPES.map((t) => (
-                  <option key={t} value={t}>
-                    {t}
-                  </option>
-                ))}
-              </select>
+              <Select value={selectedType} onValueChange={setSelectedType}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent><SelectItem value="All">All Types</SelectItem>{NOTIFICATION_TYPES.map((t) => <SelectItem key={t} value={t}>{t}</SelectItem>)}</SelectContent>
+              </Select>
             </div>
           </div>
         </div>
@@ -565,12 +535,12 @@ export default function Notifications() {
                     : `No ${activeTab} notifications available at this moment.`}
               </p>
               {isAdminOrCoordinator && (
-                <button
+                <Button
                   className="btn-secondary-create"
                   onClick={handleOpenCreateModal}
                 >
                   <Plus size={16} /> Create First Notification
-                </button>
+                </Button>
               )}
             </div>
           ) : (
@@ -663,7 +633,7 @@ export default function Notifications() {
 
                       {isAdminOrCoordinator && (
                         <div className="card-action-btns">
-                          <button
+                          <Button variant="ghost"
                             className="action-icon-btn publish-btn"
                             title={
                               item.status === 'published'
@@ -677,21 +647,21 @@ export default function Notifications() {
                             ) : (
                               <Send size={15} />
                             )}
-                          </button>
-                          <button
+                          </Button>
+                          <Button variant="ghost"
                             className="action-icon-btn edit-btn"
                             title="Edit Notification"
                             onClick={() => handleOpenEditModal(item)}
                           >
                             <Edit2 size={15} />
-                          </button>
-                          <button
+                          </Button>
+                          <Button variant="ghost"
                             className="action-icon-btn delete-btn"
                             title="Delete Notification"
                             onClick={() => setDeletingId(item._id)}
                           >
                             <Trash2 size={15} />
-                          </button>
+                          </Button>
                         </div>
                       )}
                     </div>
@@ -723,21 +693,21 @@ export default function Notifications() {
                   </p>
                 </div>
               </div>
-              <button
+              <Button variant="ghost"
                 className="modal-close-btn"
                 onClick={() => setIsModalOpen(false)}
               >
                 <X size={18} />
-              </button>
+              </Button>
             </div>
 
             <div className="modal-body-form">
               {/* Title Field */}
               <div className="form-group">
-                <label>
+                <Label>
                   Notification Title <span className="req">*</span>
-                </label>
-                <input
+                </Label>
+                <Input
                   type="text"
                   placeholder="e.g. GSoC Mentorship Orientation & Q&A"
                   value={formData.title}
@@ -750,25 +720,17 @@ export default function Notifications() {
               {/* Grid: Type & Send To */}
               <div className="form-row-2">
                 <div className="form-group">
-                  <label>
+                  <Label>
                     Notification Type <span className="req">*</span>
-                  </label>
-                  <select
-                    value={formData.type}
-                    onChange={(e) =>
-                      setFormData({ ...formData, type: e.target.value })
-                    }
-                  >
-                    {NOTIFICATION_TYPES.map((t) => (
-                      <option key={t} value={t}>
-                        {t}
-                      </option>
-                    ))}
-                  </select>
+                  </Label>
+                  <Select value={formData.type} onValueChange={(value) => setFormData({ ...formData, type: value })}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>{NOTIFICATION_TYPES.map((t) => <SelectItem key={t} value={t}>{t}</SelectItem>)}</SelectContent>
+                  </Select>
                 </div>
 
                 <div className="form-group">
-                  <label>Send To (Audience)</label>
+                  <Label>Send To (Audience)</Label>
                   <div className="fixed-sendto-input">
                     <Users size={16} />
                     <span>All Members (81)</span>
@@ -782,10 +744,10 @@ export default function Notifications() {
               {/* Grid: From Date, To Date & Time */}
               <div className="form-row-3">
                 <div className="form-group">
-                  <label>
+                  <Label>
                     From Date <span className="req">*</span>
-                  </label>
-                  <input
+                  </Label>
+                  <Input
                     type="date"
                     value={formData.fromDate}
                     onChange={(e) =>
@@ -795,10 +757,10 @@ export default function Notifications() {
                 </div>
 
                 <div className="form-group">
-                  <label>
+                  <Label>
                     To Date <span className="req">*</span>
-                  </label>
-                  <input
+                  </Label>
+                  <Input
                     type="date"
                     value={formData.toDate}
                     onChange={(e) =>
@@ -808,8 +770,8 @@ export default function Notifications() {
                 </div>
 
                 <div className="form-group">
-                  <label>Time (Optional)</label>
-                  <input
+                  <Label>Time (Optional)</Label>
+                  <Input
                     type="text"
                     placeholder="e.g. 10:00 AM - 01:00 PM"
                     value={formData.time}
@@ -822,10 +784,10 @@ export default function Notifications() {
 
               {/* Message Content */}
               <div className="form-group">
-                <label>
+                <Label>
                   Message / Announcement Body <span className="req">*</span>
-                </label>
-                <textarea
+                </Label>
+                <Textarea
                   rows={4}
                   placeholder="Provide complete details, instructions, meeting links, or guidelines for members..."
                   value={formData.message}
@@ -838,25 +800,25 @@ export default function Notifications() {
 
             {/* Modal Actions */}
             <div className="modal-footer-actions">
-              <button
+              <Button
                 className="btn-cancel"
                 onClick={() => setIsModalOpen(false)}
               >
                 Cancel
-              </button>
+              </Button>
               <div className="modal-right-actions">
-                <button
+                <Button
                   className="btn-draft"
                   onClick={() => handleSave('draft')}
                 >
                   <FileText size={16} /> Save Draft
-                </button>
-                <button
+                </Button>
+                <Button
                   className="btn-publish"
                   onClick={() => handleSave('published')}
                 >
                   <Send size={16} /> Publish
-                </button>
+                </Button>
               </div>
             </div>
           </div>
@@ -875,18 +837,18 @@ export default function Notifications() {
               Are you sure you want to delete this notification? This action cannot be undone.
             </p>
             <div className="confirm-actions">
-              <button
+              <Button
                 className="btn-cancel"
                 onClick={() => setDeletingId(null)}
               >
                 Cancel
-              </button>
-              <button
+              </Button>
+              <Button
                 className="btn-confirm-delete"
                 onClick={() => handleDelete(deletingId)}
               >
                 Delete Notification
-              </button>
+              </Button>
             </div>
           </div>
         </div>

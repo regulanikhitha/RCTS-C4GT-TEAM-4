@@ -4,6 +4,11 @@ import TopBar from '../components/TopBar';
 import api from '../api/axios';
 import toast from 'react-hot-toast';
 import { useAuth } from '../context/AuthContext';
+import { Badge } from '../components/ui/badge';
+import { Button } from '../components/ui/button';
+import { Input } from '../components/ui/input';
+import { Label } from '../components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
 
 const ROLES = ['Junior Developer', 'Senior Developer', 'Lead'];
 
@@ -202,9 +207,9 @@ export default function Members() {
             <p style={{ fontSize: 12, color: 'var(--text-muted)' }}>{filtered.length} of {members.length} members</p>
           </div>
           {isAdmin && (
-            <button className="btn btn-primary" onClick={() => setShowForm(true)}>
+            <Button className="btn btn-primary" onClick={() => setShowForm(true)}>
               <Plus size={15} /> Add Member
-            </button>
+            </Button>
           )}
         </div>
 
@@ -212,42 +217,16 @@ export default function Members() {
         <div className="card" style={{ marginBottom: 20, padding: '16px 20px' }}>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 16 }}>
             <div className="form-group" style={{ marginBottom: 0 }}>
-              <label className="form-label" style={{ fontSize: 12 }}>Role</label>
-              <select
-                className="form-input"
-                value={roleFilter}
-                onChange={e => { setRoleFilter(e.target.value); setPage(1); }}
-                style={{ fontSize: 13 }}
-              >
-                <option value="">All Roles</option>
-                <option value="Junior Developer">Junior Developer</option>
-                <option value="Senior Developer">Senior Developer</option>
-                <option value="Lead">Lead</option>
-              </select>
+              <Label className="form-label" style={{ fontSize: 12 }}>Role</Label>
+              <Select value={roleFilter || 'all'} onValueChange={value => { setRoleFilter(value === 'all' ? '' : value); setPage(1); }}><SelectTrigger className="form-input" style={{ fontSize: 13 }}><SelectValue /></SelectTrigger><SelectContent className="members-filter-select"><SelectItem value="all">All Roles</SelectItem><SelectItem value="Junior Developer">Junior Developer</SelectItem><SelectItem value="Senior Developer">Senior Developer</SelectItem><SelectItem value="Lead">Lead</SelectItem></SelectContent></Select>
             </div>
             <div className="form-group" style={{ marginBottom: 0 }}>
-              <label className="form-label" style={{ fontSize: 12 }}>Team</label>
-              <select
-                className="form-input"
-                value={teamFilter}
-                onChange={e => { setTeamFilter(e.target.value); setPage(1); }}
-                style={{ fontSize: 13 }}
-              >
-                <option value="">All Teams</option>
-                {teams.map(t => <option key={t} value={t}>{t}</option>)}
-              </select>
+              <Label className="form-label" style={{ fontSize: 12 }}>Team</Label>
+              <Select value={teamFilter || 'all'} onValueChange={value => { setTeamFilter(value === 'all' ? '' : value); setPage(1); }}><SelectTrigger className="form-input" style={{ fontSize: 13 }}><SelectValue /></SelectTrigger><SelectContent><SelectItem value="all">All Teams</SelectItem>{teams.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}</SelectContent></Select>
             </div>
             <div className="form-group" style={{ marginBottom: 0 }}>
-              <label className="form-label" style={{ fontSize: 12 }}>Department</label>
-              <select
-                className="form-input"
-                value={departmentFilter}
-                onChange={e => { setDepartmentFilter(e.target.value); setPage(1); }}
-                style={{ fontSize: 13 }}
-              >
-                <option value="">All Departments</option>
-                {departments.map(d => <option key={d} value={d}>{d}</option>)}
-              </select>
+              <Label className="form-label" style={{ fontSize: 12 }}>Department</Label>
+              <Select value={departmentFilter || 'all'} onValueChange={value => { setDepartmentFilter(value === 'all' ? '' : value); setPage(1); }}><SelectTrigger className="form-input" style={{ fontSize: 13 }}><SelectValue /></SelectTrigger><SelectContent><SelectItem value="all">All Departments</SelectItem>{departments.map(d => <SelectItem key={d} value={d}>{d}</SelectItem>)}</SelectContent></Select>
             </div>
           </div>
         </div>
@@ -299,19 +278,19 @@ export default function Members() {
                         <td style={{ fontSize: 12, color: 'var(--text-muted)' }}>{m.team || '–'}</td>
                         <td style={{ fontSize: 12, color: 'var(--text-muted)' }}>{m.department}</td>
                         <td>
-                          <span className={`badge ${m.isActive ? 'badge-present' : 'badge-absent'}`} style={{ fontSize: 11 }}>
+                          <Badge className={`badge ${m.isActive ? 'badge-present' : 'badge-absent'}`} style={{ fontSize: 11 }}>
                             {m.isActive ? 'Active' : 'Inactive'}
-                          </span>
+                          </Badge>
                         </td>
                         <td>
                           <div style={{ display: 'flex', gap: 6 }}>
-                            <button className="btn btn-ghost btn-sm" title="View Details" onClick={() => setSelectedMember(m)} style={{ color: 'var(--primary)' }}>
+                            <Button variant="ghost" className="btn btn-ghost btn-sm" title="View Details" onClick={() => setSelectedMember(m)} style={{ color: 'var(--primary)' }}>
                               <Eye size={13} />
-                            </button>
+                            </Button>
                             {isAdmin && (
                               <>
-                                <button className="btn btn-ghost btn-sm" title="Edit" onClick={() => handleEditClick(m)} style={{ color: 'var(--primary)' }}><Edit2 size={13} /></button>
-                                <button className="btn btn-ghost btn-sm" style={{ color: 'var(--danger)' }} title="Delete" onClick={() => handleDelete(m.memberId)}><Trash2 size={13} /></button>
+                                <Button variant="ghost" className="btn btn-ghost btn-sm" title="Edit" onClick={() => handleEditClick(m)} style={{ color: 'var(--primary)' }}><Edit2 size={13} /></Button>
+                                <Button variant="ghost" className="btn btn-ghost btn-sm" style={{ color: 'var(--danger)' }} title="Delete" onClick={() => handleDelete(m.memberId)}><Trash2 size={13} /></Button>
                               </>
                             )}
                           </div>
@@ -328,20 +307,20 @@ export default function Members() {
                       Page {page} of {totalPages} • {filtered.length} results
                     </div>
                     <div style={{ display: 'flex', gap: 8 }}>
-                      <button
+                      <Button
                         className="btn btn-outline btn-sm"
                         onClick={() => setPage(p => Math.max(1, p - 1))}
                         disabled={page === 1}
                       >
                         <ChevronLeft size={14} />
-                      </button>
-                      <button
+                      </Button>
+                      <Button
                         className="btn btn-outline btn-sm"
                         onClick={() => setPage(p => Math.min(totalPages, p + 1))}
                         disabled={page === totalPages}
                       >
                         <ChevronRight size={14} />
-                      </button>
+                      </Button>
                     </div>
                   </div>
                 )}
@@ -364,43 +343,43 @@ export default function Members() {
                     <div className="modal-subtitle">{selectedMember.memberId}</div>
                   </div>
                 </div>
-                <button className="modal-close" onClick={() => setSelectedMember(null)}><X size={18} /></button>
+                <Button variant="ghost" size="icon" className="modal-close" onClick={() => setSelectedMember(null)}><X size={18} /></Button>
               </div>
               <div className="modal-body">
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
                   <div>
-                    <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase' }}>Email</label>
+                    <Label style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase' }}>Email</Label>
                     <div style={{ fontSize: 14, fontWeight: 500, marginTop: 4 }}>{selectedMember.email}</div>
                   </div>
                   <div>
-                    <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase' }}>Role</label>
+                    <Label style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase' }}>Role</Label>
                     <div style={{ fontSize: 14, fontWeight: 500, marginTop: 4, color: roleColor(selectedMember.role, selectedMember.department) }}>{selectedMember.role}</div>
                   </div>
                   <div>
-                    <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase' }}>Team</label>
+                    <Label style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase' }}>Team</Label>
                     <div style={{ fontSize: 14, fontWeight: 500, marginTop: 4 }}>{selectedMember.team || '–'}</div>
                   </div>
                   <div>
-                    <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase' }}>Department</label>
+                    <Label style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase' }}>Department</Label>
                     <div style={{ fontSize: 14, fontWeight: 500, marginTop: 4 }}>{selectedMember.department}</div>
                   </div>
                   <div>
-                    <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase' }}>Status</label>
+                    <Label style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase' }}>Status</Label>
                     <div style={{ marginTop: 4 }}>
-                      <span className={`badge ${selectedMember.isActive ? 'badge-present' : 'badge-absent'}`}>
+                      <Badge className={`badge ${selectedMember.isActive ? 'badge-present' : 'badge-absent'}`}>
                         {selectedMember.isActive ? 'Active' : 'Inactive'}
-                      </span>
+                      </Badge>
                     </div>
                   </div>
                   <div>
-                    <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase' }}>Phone</label>
+                    <Label style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase' }}>Phone</Label>
                     <div style={{ fontSize: 14, fontWeight: 500, marginTop: 4 }}>{selectedMember.phone || '–'}</div>
                   </div>
                 </div>
               </div>
               {isAdmin && (
                 <div className="modal-footer" style={{ borderTop: '1px solid var(--border)', paddingTop: 14 }}>
-                  <button
+                  <Button
                     type="button"
                     className="btn btn-primary btn-sm"
                     onClick={() => {
@@ -411,7 +390,7 @@ export default function Members() {
                     style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 6 }}
                   >
                     <Edit2 size={13} /> Edit Member
-                  </button>
+                  </Button>
                 </div>
               )}
             </div>
@@ -427,63 +406,52 @@ export default function Members() {
                   <div className="modal-title">Edit Member</div>
                   <div className="modal-subtitle">Update details for {editingMember.memberId}</div>
                 </div>
-                <button className="modal-close" onClick={() => setEditingMember(null)}><X size={18} /></button>
+                <Button variant="ghost" size="icon" className="modal-close" onClick={() => setEditingMember(null)}><X size={18} /></Button>
               </div>
               <form onSubmit={handleUpdate}>
                 <div className="modal-body">
                   <div className="form-row form-row-2">
                     <div className="form-group">
-                      <label className="form-label">Member ID</label>
-                      <input className="form-input" disabled value={editForm.memberId} style={{ background: '#f8fafc', cursor: 'not-allowed', color: 'var(--text-muted)' }} />
+                      <Label className="form-label">Member ID</Label>
+                      <Input className="form-input" disabled value={editForm.memberId} style={{ background: '#f8fafc', cursor: 'not-allowed', color: 'var(--text-muted)' }} />
                     </div>
                     <div className="form-group">
-                      <label className="form-label">Full Name <span className="required">*</span></label>
-                      <input className="form-input" required value={editForm.name} onChange={e => setEditForm(f => ({ ...f, name: e.target.value }))} placeholder="John Doe" />
+                      <Label className="form-label">Full Name <span className="required">*</span></Label>
+                      <Input className="form-input" required value={editForm.name} onChange={e => setEditForm(f => ({ ...f, name: e.target.value }))} placeholder="John Doe" />
                     </div>
                   </div>
                   <div className="form-group">
-                    <label className="form-label">Email <span className="required">*</span></label>
-                    <input type="email" className="form-input" required value={editForm.email} onChange={e => setEditForm(f => ({ ...f, email: e.target.value }))} placeholder="john@domain.com" />
+                    <Label className="form-label">Email <span className="required">*</span></Label>
+                    <Input type="email" className="form-input" required value={editForm.email} onChange={e => setEditForm(f => ({ ...f, email: e.target.value }))} placeholder="john@domain.com" />
                   </div>
                   <div className="form-row form-row-2">
                     <div className="form-group">
-                      <label className="form-label">Role</label>
-                      <select className="form-input" value={editForm.role} onChange={e => setEditForm(f => ({ ...f, role: e.target.value }))}>
-                        <option value="Junior Developer">Junior Developer</option>
-                        <option value="Senior Developer">Senior Developer</option>
-                        <option value="Lead">Lead</option>
-                        <option value="User">User</option>
-                      </select>
+                      <Label className="form-label">Role</Label>
+                      <Select value={editForm.role} onValueChange={value => setEditForm(f => ({ ...f, role: value }))}><SelectTrigger className="form-input"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="Junior Developer">Junior Developer</SelectItem><SelectItem value="Senior Developer">Senior Developer</SelectItem><SelectItem value="Lead">Lead</SelectItem><SelectItem value="User">User</SelectItem></SelectContent></Select>
                     </div>
                     <div className="form-group">
-                      <label className="form-label">Team</label>
-                      <select className="form-input" value={editForm.team} onChange={e => setEditForm(f => ({ ...f, team: e.target.value }))}>
-                        <option value="">No Team</option>
-                        {teams.map(t => <option key={t} value={t}>{t}</option>)}
-                      </select>
+                      <Label className="form-label">Team</Label>
+                      <Select value={editForm.team} onValueChange={value => setEditForm(f => ({ ...f, team: value }))}><SelectTrigger className="form-input"><SelectValue placeholder="No Team" /></SelectTrigger><SelectContent>{teams.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}</SelectContent></Select>
                     </div>
                   </div>
                   <div className="form-row form-row-2">
                     <div className="form-group">
-                      <label className="form-label">Department</label>
-                      <input className="form-input" value={editForm.department} onChange={e => setEditForm(f => ({ ...f, department: e.target.value }))} placeholder="Department" />
+                      <Label className="form-label">Department</Label>
+                      <Input className="form-input" value={editForm.department} onChange={e => setEditForm(f => ({ ...f, department: e.target.value }))} placeholder="Department" />
                     </div>
                     <div className="form-group">
-                      <label className="form-label">Status</label>
-                      <select className="form-input" value={editForm.isActive ? 'true' : 'false'} onChange={e => setEditForm(f => ({ ...f, isActive: e.target.value === 'true' }))}>
-                        <option value="true">Active</option>
-                        <option value="false">Inactive</option>
-                      </select>
+                      <Label className="form-label">Status</Label>
+                      <Select value={editForm.isActive ? 'true' : 'false'} onValueChange={value => setEditForm(f => ({ ...f, isActive: value === 'true' }))}><SelectTrigger className="form-input"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="true">Active</SelectItem><SelectItem value="false">Inactive</SelectItem></SelectContent></Select>
                     </div>
                   </div>
                   <div className="form-group">
-                    <label className="form-label">Phone</label>
-                    <input className="form-input" value={editForm.phone} onChange={e => setEditForm(f => ({ ...f, phone: e.target.value }))} placeholder="+91 9876543210" />
+                    <Label className="form-label">Phone</Label>
+                    <Input className="form-input" value={editForm.phone} onChange={e => setEditForm(f => ({ ...f, phone: e.target.value }))} placeholder="+91 9876543210" />
                   </div>
                 </div>
                 <div className="modal-footer">
-                  <button type="button" className="btn btn-outline" onClick={() => setEditingMember(null)}>Cancel</button>
-                  <button type="submit" className="btn btn-primary" disabled={saving}>{saving ? 'Saving…' : 'Save Changes'}</button>
+                  <Button type="button" variant="outline" className="btn btn-outline" onClick={() => setEditingMember(null)}>Cancel</Button>
+                  <Button type="submit" className="btn btn-primary" disabled={saving}>{saving ? 'Saving…' : 'Save Changes'}</Button>
                 </div>
               </form>
             </div>
@@ -499,54 +467,46 @@ export default function Members() {
                   <div className="modal-title">Add New Member</div>
                   <div className="modal-subtitle">Fill in the member details below</div>
                 </div>
-                <button className="modal-close" onClick={() => setShowForm(false)}><X size={18} /></button>
+                <Button variant="ghost" size="icon" className="modal-close" onClick={() => setShowForm(false)}><X size={18} /></Button>
               </div>
               <form onSubmit={handleCreate}>
                 <div className="modal-body">
                   <div className="form-row form-row-2">
                     <div className="form-group">
-                      <label className="form-label">Member ID <span className="required">*</span></label>
-                      <input className="form-input" required value={form.memberId} onChange={e => setForm(f => ({ ...f, memberId: e.target.value }))} placeholder="C4GT001" />
+                      <Label className="form-label">Member ID <span className="required">*</span></Label>
+                      <Input className="form-input" required value={form.memberId} onChange={e => setForm(f => ({ ...f, memberId: e.target.value }))} placeholder="C4GT001" />
                     </div>
                     <div className="form-group">
-                      <label className="form-label">Full Name <span className="required">*</span></label>
-                      <input className="form-input" required value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} placeholder="John Doe" />
+                      <Label className="form-label">Full Name <span className="required">*</span></Label>
+                      <Input className="form-input" required value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} placeholder="John Doe" />
                     </div>
                   </div>
                   <div className="form-group">
-                    <label className="form-label">Email <span className="required">*</span></label>
-                    <input type="email" className="form-input" required value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))} placeholder="john@kiet.edu" />
+                    <Label className="form-label">Email <span className="required">*</span></Label>
+                    <Input type="email" className="form-input" required value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))} placeholder="john@kiet.edu" />
                   </div>
                   <div className="form-row form-row-2">
                     <div className="form-group">
-                      <label className="form-label">Role</label>
-                      <select className="form-input" value={form.role} onChange={e => setForm(f => ({ ...f, role: e.target.value }))}>
-                        <option value="Junior Developer">Junior Developer</option>
-                        <option value="Senior Developer">Senior Developer</option>
-                        <option value="Lead">Lead</option>
-                        <option value="User">User</option>
-                      </select>
+                      <Label className="form-label">Role</Label>
+                      <Select value={form.role} onValueChange={value => setForm(f => ({ ...f, role: value }))}><SelectTrigger className="form-input"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="Junior Developer">Junior Developer</SelectItem><SelectItem value="Senior Developer">Senior Developer</SelectItem><SelectItem value="Lead">Lead</SelectItem><SelectItem value="User">User</SelectItem></SelectContent></Select>
                     </div>
                     <div className="form-group">
-                      <label className="form-label">Team</label>
-                      <select className="form-input" value={form.team} onChange={e => setForm(f => ({ ...f, team: e.target.value }))}>
-                        <option value="">No Team</option>
-                        {teams.map(t => <option key={t} value={t}>{t}</option>)}
-                      </select>
+                      <Label className="form-label">Team</Label>
+                      <Select value={form.team} onValueChange={value => setForm(f => ({ ...f, team: value }))}><SelectTrigger className="form-input"><SelectValue placeholder="No Team" /></SelectTrigger><SelectContent>{teams.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}</SelectContent></Select>
                     </div>
                   </div>
                   <div className="form-group">
-                    <label className="form-label">Department</label>
-                    <input className="form-input" value={form.department} onChange={e => setForm(f => ({ ...f, department: e.target.value }))} />
+                    <Label className="form-label">Department</Label>
+                    <Input className="form-input" value={form.department} onChange={e => setForm(f => ({ ...f, department: e.target.value }))} />
                   </div>
                   <div className="form-group">
-                    <label className="form-label">Phone</label>
-                    <input className="form-input" value={form.phone} onChange={e => setForm(f => ({ ...f, phone: e.target.value }))} placeholder="+91 9876543210" />
+                    <Label className="form-label">Phone</Label>
+                    <Input className="form-input" value={form.phone} onChange={e => setForm(f => ({ ...f, phone: e.target.value }))} placeholder="+91 9876543210" />
                   </div>
                 </div>
                 <div className="modal-footer">
-                  <button type="button" className="btn btn-outline" onClick={() => setShowForm(false)}>Cancel</button>
-                  <button type="submit" className="btn btn-primary" disabled={saving}>{saving ? 'Saving…' : 'Create Member'}</button>
+                  <Button type="button" variant="outline" className="btn btn-outline" onClick={() => setShowForm(false)}>Cancel</Button>
+                  <Button type="submit" className="btn btn-primary" disabled={saving}>{saving ? 'Saving…' : 'Create Member'}</Button>
                 </div>
               </form>
             </div>

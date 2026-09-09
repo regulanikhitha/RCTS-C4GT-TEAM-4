@@ -11,6 +11,7 @@ import {
   LogOut,
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { Button } from './ui/button';
 
 const NAV = [
   { label: 'Admin Dashboard', icon: LayoutDashboard, to: '/admin-dashboard', roles: ['admin'] },
@@ -66,10 +67,10 @@ export default function Sidebar() {
       </nav>
 
       <div className="sidebar-footer">
-        <button className="nav-link w-full" onClick={handleLogout} style={{ background: 'none', border: 'none', width: '100%', textAlign: 'left' }}>
+        <Button variant="ghost" className="nav-link w-full" onClick={handleLogout} style={{ background: 'none', border: 'none', width: '100%', textAlign: 'left' }}>
           <LogOut size={16} />
           Logout
-        </button>
+        </Button>
       </div>
     </aside>
   );

@@ -26,6 +26,9 @@ import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card'
 import { ChartContainer, ChartTooltipContent } from '../components/ui/chart';
 import api from '../api/axios';
 import { useAuth } from '../context/AuthContext';
+import { Button } from '../components/ui/button';
+import { Label } from '../components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
 
 const TODAY = new Date().toISOString().split('T')[0];
 
@@ -271,7 +274,7 @@ export default function Dashboard() {
               flexWrap: 'wrap',
             }}
           >
-            <label
+            <Label
               htmlFor="admin-team-select"
               style={{
                 fontWeight: 600,
@@ -279,13 +282,10 @@ export default function Dashboard() {
               }}
             >
               Select Team:
-            </label>
+            </Label>
 
-            <select
-              id="admin-team-select"
-              value={selectedTeam}
-              onChange={(e) => setSelectedTeam(e.target.value)}
-              style={{
+            <Select value={selectedTeam} onValueChange={setSelectedTeam}>
+              <SelectTrigger id="admin-team-select" style={{
                 padding: '10px 14px',
                 borderRadius: '8px',
                 border: '1px solid #cbd5e1',
@@ -295,14 +295,11 @@ export default function Dashboard() {
                 background: '#fff',
                 minWidth: '150px',
                 outline: 'none',
-              }}
-            >
-              {TEAMS.map((team) => (
-                <option key={team} value={team}>
-                  {team === 'ALL' ? 'All Teams' : team}
-                </option>
-              ))}
-            </select>
+              }}><SelectValue /></SelectTrigger>
+              <SelectContent>
+                {TEAMS.map((team) => <SelectItem key={team} value={team}>{team === 'ALL' ? 'All Teams' : team}</SelectItem>)}
+              </SelectContent>
+            </Select>
 
             <span
               style={{
@@ -420,12 +417,12 @@ export default function Dashboard() {
                       )}
                 </span>
 
-                <button
+                <Button
                   className="btn btn-outline btn-sm"
                   onClick={() => navigate('/attendance')}
                 >
                   View All
-                </button>
+                </Button>
               </div>
             </CardHeader>
             

@@ -4,6 +4,9 @@ import TopBar from '../components/TopBar';
 import PermissionModal from '../components/PermissionModal';
 import api from '../api/axios';
 import toast from 'react-hot-toast';
+import { Badge } from '../components/ui/badge';
+import { Button } from '../components/ui/button';
+import { Tabs, TabsList, TabsTrigger } from '../components/ui/tabs';
 
 const TABS = ['All Requests', 'My Requests'];
 
@@ -50,16 +53,14 @@ export default function PermissionPortal() {
       <div className="page-content">
         {/* Tabs + New Request */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
-          <div className="permission-tabs" style={{ marginBottom: 0, borderBottom: 'none' }}>
-            {TABS.map(t => (
-              <button key={t} className={`p-tab ${activeTab === t ? 'active' : ''}`} onClick={() => setActiveTab(t)}>
-                {t}
-              </button>
-            ))}
-          </div>
-          <button className="btn btn-primary" onClick={() => setShowForm(true)}>
+          <Tabs value={activeTab} onValueChange={setActiveTab}>
+            <TabsList className="permission-tabs" style={{ marginBottom: 0, borderBottom: 'none' }}>
+              {TABS.map(t => <TabsTrigger key={t} value={t} className={`p-tab ${activeTab === t ? 'active' : ''}`}>{t}</TabsTrigger>)}
+            </TabsList>
+          </Tabs>
+          <Button className="btn btn-primary" onClick={() => setShowForm(true)}>
             <Plus size={15} /> New Request
-          </button>
+          </Button>
         </div>
 
         {/* Stats */}
@@ -116,12 +117,12 @@ export default function PermissionPortal() {
                       <td><span style={{ fontSize: 12, color: 'var(--text-secondary)' }}>{p.role}</span></td>
                       <td style={{ fontSize: 12 }}>{formatDateRange(p.fromDate, p.toDate)}</td>
                       <td style={{ fontSize: 12, color: 'var(--text-muted)', maxWidth: 160, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.permissionType}</td>
-                      <td><span className={`badge badge-${p.status}`}>{p.status}</span></td>
+                      <td><Badge className={`badge badge-${p.status}`}>{p.status}</Badge></td>
                       <td>
                         <div style={{ display: 'flex', gap: 6 }}>
-                          <button className="btn btn-ghost btn-sm" onClick={() => setSelected(p)} title="View Details">
+                          <Button variant="ghost" className="btn btn-ghost btn-sm" onClick={() => setSelected(p)} title="View Details">
                             <Eye size={14} />
-                          </button>
+                          </Button>
                         </div>
                       </td>
                     </tr>
@@ -134,15 +135,15 @@ export default function PermissionPortal() {
           {/* Pagination */}
           {totalPages > 1 && (
             <div className="pagination">
-              <button className="page-num" onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1}>
+              <Button variant="ghost" className="page-num" onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1}>
                 <ChevronLeft size={14} />
-              </button>
+              </Button>
               {Array.from({ length: totalPages }, (_, i) => i + 1).map(n => (
-                <button key={n} className={`page-num ${page === n ? 'active' : ''}`} onClick={() => setPage(n)}>{n}</button>
+                <Button variant="ghost" key={n} className={`page-num ${page === n ? 'active' : ''}`} onClick={() => setPage(n)}>{n}</Button>
               ))}
-              <button className="page-num" onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={page === totalPages}>
+              <Button variant="ghost" className="page-num" onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={page === totalPages}>
                 <ChevronRight size={14} />
-              </button>
+              </Button>
             </div>
           )}
         </div>
@@ -160,7 +161,7 @@ export default function PermissionPortal() {
                 <div className="modal-title">Permission Request</div>
                 <div className="modal-subtitle">PER-{String(selected._id).slice(-4).toUpperCase()}</div>
               </div>
-              <button className="modal-close" onClick={() => setSelected(null)}><X size={18} /></button>
+              <Button variant="ghost" size="icon" className="modal-close" onClick={() => setSelected(null)}><X size={18} /></Button>
             </div>
             <div className="modal-body">
               {[
@@ -175,13 +176,13 @@ export default function PermissionPortal() {
                 <div key={k} style={{ display: 'flex', gap: 12, marginBottom: 12 }}>
                   <div style={{ width: 140, fontSize: 12, fontWeight: 600, color: 'var(--text-muted)', flexShrink: 0 }}>{k}</div>
                   <div style={{ fontSize: 13, color: 'var(--text-primary)' }}>
-                    {k === 'Status' ? <span className={`badge badge-${v}`}>{v}</span> : v}
+                    {k === 'Status' ? <Badge className={`badge badge-${v}`}>{v}</Badge> : v}
                   </div>
                 </div>
               ))}
             </div>
             <div className="modal-footer">
-              <button className="btn btn-outline" onClick={() => setSelected(null)}>Close</button>
+              <Button variant="outline" className="btn btn-outline" onClick={() => setSelected(null)}>Close</Button>
             </div>
           </div>
         </div>

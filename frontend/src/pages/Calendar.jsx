@@ -3,6 +3,7 @@ import TopBar from '../components/TopBar';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import api from '../api/axios';
 import { useAuth } from '../context/AuthContext';
+import { Button } from '../components/ui/button';
 
 const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
@@ -46,9 +47,9 @@ export default function CalendarPage() {
       <div className="page-content">
         <div className="card" style={{ maxWidth: 600, margin: '0 auto' }}>
           <div className="card-header">
-            <button className="btn btn-ghost btn-sm" onClick={prev}><ChevronLeft size={16} /></button>
+            <Button variant="ghost" className="btn btn-ghost btn-sm" onClick={prev}><ChevronLeft size={16} /></Button>
             <span className="card-title">{MONTHS[current.month]} {current.year}</span>
-            <button className="btn btn-ghost btn-sm" onClick={next}><ChevronRight size={16} /></button>
+            <Button variant="ghost" className="btn btn-ghost btn-sm" onClick={next}><ChevronRight size={16} /></Button>
           </div>
           <div className="card-body">
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 4, marginBottom: 8 }}>

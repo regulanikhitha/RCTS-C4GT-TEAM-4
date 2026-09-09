@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import TopBar from '../components/TopBar';
+import { Badge } from '../components/ui/badge';
+import { Button } from '../components/ui/button';
 import { Bell, Megaphone, Calendar, Users, X, ArrowRight, Sparkles, CheckCircle2 } from 'lucide-react';
 import api from '../api/axios';
 
@@ -166,7 +168,7 @@ export default function StudentDashboard() {
                 </div>
               </div>
 
-              <button
+              <Button variant="ghost"
                 onClick={handleClosePopup}
                 style={{
                   background: '#ffffff',
@@ -182,7 +184,7 @@ export default function StudentDashboard() {
                 }}
               >
                 <X size={16} />
-              </button>
+              </Button>
             </div>
 
             {/* Modal Body */}
@@ -195,7 +197,7 @@ export default function StudentDashboard() {
                   marginBottom: '12px',
                 }}
               >
-                <span
+                <Badge
                   style={{
                     backgroundColor: getTypeBadgeStyle(latestNotification.type).bg,
                     color: getTypeBadgeStyle(latestNotification.type).color,
@@ -206,7 +208,7 @@ export default function StudentDashboard() {
                   }}
                 >
                   {latestNotification.type}
-                </span>
+                </Badge>
                 <span style={{ fontSize: '12px', color: '#94a3b8', fontWeight: '500' }}>
                   By {latestNotification.createdBy?.name || 'Admin'}
                 </span>
@@ -275,7 +277,7 @@ export default function StudentDashboard() {
                 justifyContent: 'space-between',
               }}
             >
-              <button
+              <Button variant="outline"
                 onClick={handleClosePopup}
                 style={{
                   background: '#ffffff',
@@ -292,9 +294,9 @@ export default function StudentDashboard() {
                 }}
               >
                 <CheckCircle2 size={16} /> Got it
-              </button>
+              </Button>
 
-              <button
+              <Button
                 onClick={handleGoToNotifications}
                 style={{
                   background: '#4338ca',
@@ -311,7 +313,7 @@ export default function StudentDashboard() {
                 }}
               >
                 View All Notifications <ArrowRight size={15} />
-              </button>
+              </Button>
             </div>
           </div>
         </div>

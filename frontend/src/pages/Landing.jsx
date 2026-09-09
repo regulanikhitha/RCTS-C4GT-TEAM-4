@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
+import { Button } from '../components/ui/button';
 
 export default function Landing() {
   const navigate = useNavigate();
@@ -97,7 +98,8 @@ export default function Landing() {
                 </div>
                 <h3 style={{ marginTop: 6, fontSize: 26, fontWeight: 800, color: '#0f172a' }}>Login as</h3>
               </div>
-              <button
+              <Button
+                variant="ghost"
                 type="button"
                 onClick={() => setShowLoginPopup(false)}
                 style={{
@@ -115,12 +117,13 @@ export default function Landing() {
                 title="Close"
               >
                 ×
-              </button>
+              </Button>
             </div>
 
             <div style={{ display: 'grid', gap: 12 }}>
               {loginOptions.map(({ role, label, route, name }) => (
-                <button
+                <Button
+                  variant="outline"
                   key={role}
                   type="button"
                   onClick={() => loginAsRole(role, route, name)}
@@ -141,7 +144,7 @@ export default function Landing() {
                 >
                   <span>{label}</span>
                   <span style={{ color: '#4338ca', fontSize: 18 }}>→</span>
-                </button>
+                </Button>
               ))}
             </div>
           </div>
@@ -149,7 +152,7 @@ export default function Landing() {
       )}
 
       <header className="lp-nav">
-        <button type="button" className="lp-brand" onClick={handleLogin}>
+        <Button type="button" variant="ghost" className="lp-brand" onClick={handleLogin}>
           <div className="lp-brand-badge">
             <img src="/logo.svg" width="36" height="36" alt="C4GT HUB logo" />
           </div>
@@ -157,7 +160,7 @@ export default function Landing() {
             <span className="brand">C4GT HUB</span>
             <span className="sub">@KIET</span>
           </span>
-        </button>
+        </Button>
 
         <div className="lp-nav-right">
         </div>
@@ -177,9 +180,9 @@ export default function Landing() {
               C4GT Hub replaces the spreadsheet chase with a single dashboard — coordinators mark attendance in seconds, students request leave without a WhatsApp thread, and admins see the whole cohort at a glance.
             </p>
             <div className="lp-hero-cta">
-              <button type="button" className="lp-btn-primary" onClick={handleLogin}>
+              <Button type="button" className="lp-btn-primary" onClick={handleLogin}>
                 Login to your dashboard →
-              </button>
+              </Button>
             </div>
             <div className="lp-hero-stats">
               <div className="lp-hero-stat">
@@ -213,7 +216,7 @@ export default function Landing() {
                   { label: 'Student', route: '/student-dashboard', value: '91%', tint: 'green' },
                   { label: 'Permission', route: '/permission-dashboard', value: '72%', tint: 'orange' },
                 ].map((item) => (
-                  <button
+                  <Button
                     key={item.label}
                     type="button"
                     className={`lp-mini-dashboard-card ${item.tint}`}
@@ -221,7 +224,7 @@ export default function Landing() {
                   >
                     <span>{item.label}</span>
                     <strong>{item.value}</strong>
-                  </button>
+                  </Button>
                 ))}
               </div>
 

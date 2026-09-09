@@ -3,6 +3,10 @@ import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { Eye, EyeOff, Lock, Mail } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import toast, { Toaster } from 'react-hot-toast';
+import { Button } from '../components/ui/button';
+import { Input } from '../components/ui/input';
+import { Label } from '../components/ui/label';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../components/ui/tooltip';
 
 const roleLabelMap = {
   admin: 'Admin',
@@ -83,10 +87,10 @@ export default function Login() {
 
         <form className="login-form" onSubmit={handleSubmit}>
           <div className="form-group">
-            <label className="form-label">Email Address</label>
+            <Label className="form-label">Email Address</Label>
             <div style={{ position: 'relative' }}>
               <Mail size={15} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
-              <input
+              <Input
                 type="email"
                 className="form-input"
                 style={{ paddingLeft: 36 }}
@@ -100,14 +104,14 @@ export default function Login() {
 
           <div className="form-group">
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
-              <label className="form-label" style={{ marginBottom: 0 }}>Password</label>
+              <Label className="form-label" style={{ marginBottom: 0 }}>Password</Label>
               <Link to="/forgot-password" style={{ fontSize: 12, color: 'var(--primary)', fontWeight: 500 }}>
                 Forgot password?
               </Link>
             </div>
             <div style={{ position: 'relative' }}>
               <Lock size={15} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
-              <input
+              <Input
                 type={showPass ? 'text' : 'password'}
                 className="form-input"
                 style={{ paddingLeft: 36, paddingRight: 40 }}
@@ -116,21 +120,33 @@ export default function Login() {
                 value={form.password}
                 onChange={e => setForm(f => ({ ...f, password: e.target.value }))}
               />
-              <button
-                type="button"
-                onClick={() => setShowPass(s => !s)}
-                style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)' }}
-              >
-                {showPass ? <EyeOff size={16} /> : <Eye size={16} />}
-              </button>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className="password-toggle"
+                      onClick={() => setShowPass(s => !s)}
+                      style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)' }}
+                    >
+                      {showPass ? <EyeOff size={16} /> : <Eye size={16} />}
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>{showPass ? 'Hide password' : 'Show password'}</TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
             </div>
           </div>
 
           <div style={{ display: 'grid', gap: 10, marginTop: 12 }}>
-            <button type="submit" className="btn btn-primary login-submit" disabled={loading}>
+            <Button type="submit" className="btn btn-primary login-submit" disabled={loading}>
               {loading ? 'Signing in…' : 'Sign In'}
-            </button>
-            <button
+            </Button>
+            <Button
+              type="button"
+              variant="secondary"
               type="button"
               className="btn btn-secondary"
               onClick={handleCancel}
@@ -141,7 +157,7 @@ export default function Login() {
               }}
             >
               Cancel
-            </button>
+            </Button>
           </div>
         </form>
 

@@ -2,6 +2,12 @@ import React, { useRef, useState } from 'react';
 import { X, Upload, Send, FileText } from 'lucide-react';
 import api from '../api/axios';
 import toast from 'react-hot-toast';
+import { Button } from './ui/button';
+import { Checkbox } from './ui/checkbox';
+import { Input } from './ui/input';
+import { Label } from './ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
+import { Textarea } from './ui/textarea';
 
 const PERMISSION_TYPES = [
   'Medical Leave',
@@ -256,13 +262,13 @@ export default function PermissionModal({ onClose, onSuccess }) {
               </div>
             </div>
 
-            <button
+            <Button
               type="button"
               className="modal-close"
               onClick={onClose}
             >
               <X size={18} />
-            </button>
+            </Button>
 
           </div>
 
@@ -354,13 +360,13 @@ export default function PermissionModal({ onClose, onSuccess }) {
 
             {/* DONE BUTTON */}
 
-            <button
+            <Button
               type="button"
               className="btn btn-primary btn-lg"
               onClick={onClose}
             >
               Done
-            </button>
+            </Button>
 
           </div>
 
@@ -420,14 +426,14 @@ export default function PermissionModal({ onClose, onSuccess }) {
             </div>
           </div>
 
-          <button
+          <Button
             type="button"
             className="modal-close"
             onClick={onClose}
             disabled={loading}
           >
             <X size={18} />
-          </button>
+          </Button>
 
         </div>
 
@@ -476,35 +482,15 @@ export default function PermissionModal({ onClose, onSuccess }) {
                 className="form-group"
                 style={{ marginBottom: 0 }}
               >
-                <label className="form-label">
+                <Label className="form-label">
                   Permission Type{' '}
                   <span className="required">*</span>
-                </label>
+                </Label>
 
-                <select
-                  className="form-input"
-                  required
-                  value={form.permissionType}
-                  onChange={(e) =>
-                    set(
-                      'permissionType',
-                      e.target.value
-                    )
-                  }
-                >
-                  <option value="">
-                    Select Permission Type
-                  </option>
-
-                  {PERMISSION_TYPES.map((type) => (
-                    <option
-                      key={type}
-                      value={type}
-                    >
-                      {type}
-                    </option>
-                  ))}
-                </select>
+                <Select value={form.permissionType} onValueChange={(value) => set('permissionType', value)} required>
+                  <SelectTrigger className="form-input"><SelectValue placeholder="Select Permission Type" /></SelectTrigger>
+                  <SelectContent>{PERMISSION_TYPES.map((type) => <SelectItem key={type} value={type}>{type}</SelectItem>)}</SelectContent>
+                </Select>
               </div>
 
               {/* From Date */}
@@ -513,12 +499,12 @@ export default function PermissionModal({ onClose, onSuccess }) {
                 className="form-group"
                 style={{ marginBottom: 0 }}
               >
-                <label className="form-label">
+                <Label className="form-label">
                   From Date{' '}
                   <span className="required">*</span>
-                </label>
+                </Label>
 
-                <input
+                <Input
                   type="date"
                   className="form-input"
                   required
@@ -538,12 +524,12 @@ export default function PermissionModal({ onClose, onSuccess }) {
                 className="form-group"
                 style={{ marginBottom: 0 }}
               >
-                <label className="form-label">
+                <Label className="form-label">
                   To Date{' '}
                   <span className="required">*</span>
-                </label>
+                </Label>
 
-                <input
+                <Input
                   type="date"
                   className="form-input"
                   required
@@ -565,10 +551,10 @@ export default function PermissionModal({ onClose, onSuccess }) {
 
             <div className="form-group">
 
-              <label className="form-label">
+              <Label className="form-label">
                 Permission Duration{' '}
                 <span className="required">*</span>
-              </label>
+              </Label>
 
               <div className="radio-group">
 
@@ -587,7 +573,7 @@ export default function PermissionModal({ onClose, onSuccess }) {
                   },
                 ].map((option) => (
 
-                  <label
+                  <Label
                     key={option.val}
                     className="radio-option"
                   >
@@ -610,7 +596,7 @@ export default function PermissionModal({ onClose, onSuccess }) {
 
                     {option.label}
 
-                  </label>
+                  </Label>
 
                 ))}
 
@@ -625,11 +611,11 @@ export default function PermissionModal({ onClose, onSuccess }) {
 
                   <div>
 
-                    <label className="form-label">
+                    <Label className="form-label">
                       From Time
-                    </label>
+                    </Label>
 
-                    <input
+                    <Input
                       type="time"
                       className="form-input"
                       value={form.fromTime}
@@ -645,11 +631,11 @@ export default function PermissionModal({ onClose, onSuccess }) {
 
                   <div>
 
-                    <label className="form-label">
+                    <Label className="form-label">
                       To Time
-                    </label>
+                    </Label>
 
-                    <input
+                    <Input
                       type="time"
                       className="form-input"
                       value={form.toTime}
@@ -700,12 +686,12 @@ export default function PermissionModal({ onClose, onSuccess }) {
 
                 <div className="form-group">
 
-                  <label className="form-label">
+                  <Label className="form-label">
                     Reason for Permission{' '}
                     <span className="required">*</span>
-                  </label>
+                  </Label>
 
-                  <textarea
+                  <Textarea
                     className="form-input"
                     rows={5}
                     maxLength={500}
@@ -736,13 +722,13 @@ export default function PermissionModal({ onClose, onSuccess }) {
                   4. Supporting Document
                 </div>
 
-                <label className="form-label">
+                <Label className="form-label">
                   Upload Document (Optional)
-                </label>
+                </Label>
 
                 {/* Hidden File Input */}
 
-                <input
+                <Input
                   ref={fileInputRef}
                   id="permission-file"
                   type="file"
@@ -866,14 +852,14 @@ export default function PermissionModal({ onClose, onSuccess }) {
 
                     </div>
 
-                    <button
+                    <Button
                       type="button"
                       className="btn btn-ghost btn-sm"
                       onClick={removeFile}
                       disabled={loading}
                     >
                       <X size={16} />
-                    </button>
+                    </Button>
 
                   </div>
 
@@ -894,7 +880,7 @@ export default function PermissionModal({ onClose, onSuccess }) {
               5. Declaration
             </div>
 
-            <label
+            <Label
               className="radio-option"
               style={{
                 alignItems: 'flex-start',
@@ -902,20 +888,7 @@ export default function PermissionModal({ onClose, onSuccess }) {
               }}
             >
 
-              <input
-                type="checkbox"
-                style={{
-                  marginTop: 2,
-                  accentColor: 'var(--primary)',
-                }}
-                checked={form.declaration}
-                onChange={(e) =>
-                  set(
-                    'declaration',
-                    e.target.checked
-                  )
-                }
-              />
+              <Checkbox checked={form.declaration} onCheckedChange={(checked) => set('declaration', checked === true)} style={{ marginTop: 2 }} />
 
               <span
                 style={{
@@ -928,7 +901,7 @@ export default function PermissionModal({ onClose, onSuccess }) {
                 is genuine.
               </span>
 
-            </label>
+            </Label>
 
           </div>
 
@@ -938,16 +911,16 @@ export default function PermissionModal({ onClose, onSuccess }) {
 
           <div className="modal-footer">
 
-            <button
+            <Button
               type="button"
               className="btn btn-outline"
               onClick={onClose}
               disabled={loading}
             >
               Cancel
-            </button>
+            </Button>
 
-            <button
+            <Button
               type="submit"
               className="btn btn-primary btn-lg"
               disabled={loading}
@@ -962,7 +935,7 @@ export default function PermissionModal({ onClose, onSuccess }) {
                 </>
               )}
 
-            </button>
+            </Button>
 
           </div>
 

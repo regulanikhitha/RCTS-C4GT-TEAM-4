@@ -3,6 +3,9 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Mail, ArrowLeft, KeyRound, Lock } from 'lucide-react';
 import api from '../api/axios';
 import toast, { Toaster } from 'react-hot-toast';
+import { Button } from '../components/ui/button';
+import { Input } from '../components/ui/input';
+import { Label } from '../components/ui/label';
 
 export default function ForgotPassword() {
   const navigate = useNavigate();
@@ -92,46 +95,46 @@ export default function ForgotPassword() {
         {step === 1 && (
           <form onSubmit={handleEmailSubmit}>
             <div className="form-group">
-              <label className="form-label">Email Address</label>
+              <Label className="form-label">Email Address</Label>
               <div style={{ position: 'relative' }}>
                 <Mail size={15} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
-                <input type="email" className="form-input" style={{ paddingLeft: 36 }} placeholder="your@email.com" required value={email} onChange={e => setEmail(e.target.value)} />
+                <Input type="email" className="form-input" style={{ paddingLeft: 36 }} placeholder="your@email.com" required value={email} onChange={e => setEmail(e.target.value)} />
               </div>
             </div>
-            <button type="submit" className="btn btn-primary login-submit" disabled={loading}>{loading ? 'Sending…' : 'Send OTP'}</button>
+            <Button type="submit" className="btn btn-primary login-submit" disabled={loading}>{loading ? 'Sending…' : 'Send OTP'}</Button>
           </form>
         )}
 
         {step === 2 && (
           <form onSubmit={handleOtpSubmit}>
             <div className="form-group">
-              <label className="form-label">6-Digit OTP</label>
+              <Label className="form-label">6-Digit OTP</Label>
               <div style={{ position: 'relative' }}>
                 <KeyRound size={15} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
-                <input type="text" className="form-input" style={{ paddingLeft: 36, letterSpacing: 6, fontSize: 18, textAlign: 'center' }} placeholder="• • • • • •" maxLength={6} required value={otp} onChange={e => setOtp(e.target.value.replace(/\D/g, ''))} />
+                <Input type="text" className="form-input" style={{ paddingLeft: 36, letterSpacing: 6, fontSize: 18, textAlign: 'center' }} placeholder="• • • • • •" maxLength={6} required value={otp} onChange={e => setOtp(e.target.value.replace(/\D/g, ''))} />
               </div>
             </div>
-            <button type="submit" className="btn btn-primary login-submit" disabled={loading}>{loading ? 'Verifying…' : 'Verify OTP'}</button>
+            <Button type="submit" className="btn btn-primary login-submit" disabled={loading}>{loading ? 'Verifying…' : 'Verify OTP'}</Button>
           </form>
         )}
 
         {step === 3 && (
           <form onSubmit={handleReset}>
             <div className="form-group">
-              <label className="form-label">New Password</label>
+              <Label className="form-label">New Password</Label>
               <div style={{ position: 'relative' }}>
                 <Lock size={15} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
-                <input type="password" className="form-input" style={{ paddingLeft: 36 }} placeholder="Min 8 chars, uppercase, number, special" required value={passwords.newPassword} onChange={e => setPasswords(p => ({ ...p, newPassword: e.target.value }))} />
+                <Input type="password" className="form-input" style={{ paddingLeft: 36 }} placeholder="Min 8 chars, uppercase, number, special" required value={passwords.newPassword} onChange={e => setPasswords(p => ({ ...p, newPassword: e.target.value }))} />
               </div>
             </div>
             <div className="form-group">
-              <label className="form-label">Confirm Password</label>
+              <Label className="form-label">Confirm Password</Label>
               <div style={{ position: 'relative' }}>
                 <Lock size={15} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
-                <input type="password" className="form-input" style={{ paddingLeft: 36 }} placeholder="Repeat new password" required value={passwords.confirmPassword} onChange={e => setPasswords(p => ({ ...p, confirmPassword: e.target.value }))} />
+                <Input type="password" className="form-input" style={{ paddingLeft: 36 }} placeholder="Repeat new password" required value={passwords.confirmPassword} onChange={e => setPasswords(p => ({ ...p, confirmPassword: e.target.value }))} />
               </div>
             </div>
-            <button type="submit" className="btn btn-primary login-submit" disabled={loading}>{loading ? 'Resetting…' : 'Reset Password'}</button>
+            <Button type="submit" className="btn btn-primary login-submit" disabled={loading}>{loading ? 'Resetting…' : 'Reset Password'}</Button>
           </form>
         )}
       </div>

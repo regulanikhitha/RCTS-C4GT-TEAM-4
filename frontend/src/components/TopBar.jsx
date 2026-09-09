@@ -2,6 +2,7 @@ import React from 'react';
 import { Search } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { Input } from './ui/input';
 
 export default function TopBar({ title, hideSearch = false }) {
   const { user, adminSearch, setAdminSearch } = useAuth();
@@ -22,8 +23,9 @@ export default function TopBar({ title, hideSearch = false }) {
       {isAdmin && !hideSearch && (
         <form className="topbar-search" onSubmit={handleSearch}>
           <Search size={14} />
-          <input
+          <Input
             type="text"
+            className="topbar-search-input"
             placeholder="Search members, requests..."
             value={adminSearch}
             onChange={e => setAdminSearch(e.target.value)}

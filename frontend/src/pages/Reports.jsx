@@ -3,6 +3,9 @@ import TopBar from '../components/TopBar';
 import { Download, BarChart2 } from 'lucide-react';
 import api from '../api/axios';
 import toast from 'react-hot-toast';
+import { Button } from '../components/ui/button';
+import { Input } from '../components/ui/input';
+import { Label } from '../components/ui/label';
 
 export default function Reports() {
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
@@ -32,12 +35,12 @@ export default function Reports() {
           </div>
           <div className="card-body">
             <div className="form-group">
-              <label className="form-label">Select Date</label>
-              <input type="date" className="form-input" value={date} onChange={e => setDate(e.target.value)} />
+              <Label className="form-label">Select Date</Label>
+              <Input type="date" className="form-input" value={date} onChange={e => setDate(e.target.value)} />
             </div>
-            <button className="btn btn-primary w-full" onClick={downloadPDF} disabled={loading}>
+            <Button className="btn btn-primary w-full" onClick={downloadPDF} disabled={loading}>
               <Download size={15} /> {loading ? 'Generating…' : 'Download PDF Report'}
-            </button>
+            </Button>
           </div>
         </div>
       </div>

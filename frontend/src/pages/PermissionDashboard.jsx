@@ -17,6 +17,9 @@ import PermissionModal from '../components/PermissionModal';
 import api from '../api/axios';
 import toast from 'react-hot-toast';
 import { useAuth } from '../context/AuthContext';
+import { Badge } from '../components/ui/badge';
+import { Button } from '../components/ui/button';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
 
 export default function PermissionDashboard() {
   const { user, adminSearch } = useAuth();
@@ -330,41 +333,28 @@ export default function PermissionDashboard() {
               style={{ color: 'var(--text-muted)' }}
             />
 
-            <select
-              className="form-input"
-              value={statusFilter}
-              onChange={(e) => {
-                setStatusFilter(e.target.value);
-                setPage(1);
-              }}
-              style={{
+            <Select value={statusFilter} onValueChange={(value) => { setStatusFilter(value); setPage(1); }}>
+              <SelectTrigger className="form-input" style={{
                 padding: '7px 12px',
                 borderRadius: 8,
                 minWidth: 160,
-              }}
-            >
-              <option value="all">
-                All Requests ({counts.total})
-              </option>
-              <option value="pending">
-                Pending ({counts.pending})
-              </option>
-              <option value="approved">
-                Approved ({counts.approved})
-              </option>
-              <option value="rejected">
-                Rejected ({counts.rejected})
-              </option>
-            </select>
+              }}><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Requests ({counts.total})</SelectItem>
+                <SelectItem value="pending">Pending ({counts.pending})</SelectItem>
+                <SelectItem value="approved">Approved ({counts.approved})</SelectItem>
+                <SelectItem value="rejected">Rejected ({counts.rejected})</SelectItem>
+              </SelectContent>
+            </Select>
 
             {isStudent && (
-              <button
+              <Button
                 className="btn btn-primary"
                 onClick={() => setShowForm(true)}
               >
                 <Plus size={15} />
                 New Request
-              </button>
+              </Button>
             )}
           </div>
         </div>
@@ -505,11 +495,11 @@ export default function PermissionDashboard() {
                               Coordinator
                             </strong>
 
-                            <span
+                            <Badge
                               className={`badge badge-${status}`}
                             >
                               {getStatusLabel(status)}
-                            </span>
+                            </Badge>
                           </div>
                         </td>
 
@@ -526,7 +516,7 @@ export default function PermissionDashboard() {
                           >
                             {/* EVERYONE CAN VIEW */}
 
-                            <button
+                            <Button variant="ghost"
                               className="btn btn-ghost btn-sm"
                               onClick={() =>
                                 setSelected(p)
@@ -538,13 +528,13 @@ export default function PermissionDashboard() {
                               }}
                             >
                               <Eye size={14} />
-                            </button>
+                            </Button>
 
                             {/* COORDINATOR ONLY */}
 
                             {needsReview(p) && (
                               <>
-                                <button
+                                <Button
                                   className="btn btn-danger"
                                   disabled={actionLoading}
                                   onClick={() =>
@@ -556,9 +546,9 @@ export default function PermissionDashboard() {
                                 >
                                   <XCircle size={15} />
                                   Reject
-                                </button>
+                                </Button>
 
-                                <button
+                                <Button
                                   className="btn btn-success"
                                   disabled={actionLoading}
                                   onClick={() =>
@@ -572,7 +562,7 @@ export default function PermissionDashboard() {
                                     size={15}
                                   />
                                   Approve
-                                </button>
+                                </Button>
                               </>
                             )}
                           </div>
@@ -589,7 +579,7 @@ export default function PermissionDashboard() {
 
           {totalPages > 1 && (
             <div className="pagination">
-              <button
+              <Button variant="ghost"
                 className="page-num"
                 disabled={page === 1}
                 onClick={() =>
@@ -597,23 +587,23 @@ export default function PermissionDashboard() {
                 }
               >
                 <ChevronLeft size={14} />
-              </button>
+              </Button>
 
               {Array.from(
                 { length: totalPages },
                 (_, i) => i + 1
               ).map((n) => (
-                <button
+                <Button variant="ghost"
                   key={n}
                   className={`page-num ${page === n ? 'active' : ''
                     }`}
                   onClick={() => setPage(n)}
                 >
                   {n}
-                </button>
+                </Button>
               ))}
 
-              <button
+              <Button variant="ghost"
                 className="page-num"
                 disabled={page === totalPages}
                 onClick={() =>
@@ -623,7 +613,7 @@ export default function PermissionDashboard() {
                 }
               >
                 <ChevronRight size={14} />
-              </button>
+              </Button>
             </div>
           )}
         </div>
@@ -667,12 +657,12 @@ export default function PermissionDashboard() {
                 </div>
               </div>
 
-              <button
+              <Button variant="ghost" size="icon"
                 className="modal-close"
                 onClick={() => setSelected(null)}
               >
                 <X size={18} />
-              </button>
+              </Button>
             </div>
 
             <div className="modal-body">
@@ -791,7 +781,7 @@ export default function PermissionDashboard() {
                         selected.attachment.fileName}
                     </span>
 
-                    <button
+                    <Button
                       className="btn btn-outline"
                       onClick={() =>
                         handleViewAttachment(
@@ -801,7 +791,7 @@ export default function PermissionDashboard() {
                     >
                       <Eye size={15} />
                       View Document
-                    </button>
+                    </Button>
                   </div>
                 ) : (
                   <p
@@ -837,7 +827,7 @@ export default function PermissionDashboard() {
                   GENERATED PERMISSION PDF
                 </strong>
 
-                <button
+                <Button
                   className="btn btn-outline"
                   onClick={() =>
                     handleViewPermissionPDF(
@@ -852,7 +842,7 @@ export default function PermissionDashboard() {
                 >
                   <Eye size={15} />
                   View Generated Permission PDF
-                </button>
+                </Button>
               </div>
             </div>
 
@@ -867,12 +857,12 @@ export default function PermissionDashboard() {
                 gap: 10,
               }}
             >
-              <button
+              <Button variant="outline"
                 className="btn btn-outline"
                 onClick={() => setSelected(null)}
               >
                 Close
-              </button>
+              </Button>
 
               {/* COORDINATOR ONLY */}
 
@@ -883,7 +873,7 @@ export default function PermissionDashboard() {
                     gap: 10,
                   }}
                 >
-                  <button
+                  <Button
                     className="btn btn-danger"
                     disabled={actionLoading}
                     onClick={() =>
@@ -895,9 +885,9 @@ export default function PermissionDashboard() {
                   >
                     <XCircle size={16} />
                     Reject
-                  </button>
+                  </Button>
 
-                  <button
+                  <Button
                     className="btn btn-success"
                     disabled={actionLoading}
                     onClick={() =>
@@ -909,7 +899,7 @@ export default function PermissionDashboard() {
                   >
                     <CheckCircle2 size={16} />
                     Approve
-                  </button>
+                  </Button>
                 </div>
               )}
             </div>
@@ -952,14 +942,14 @@ export default function PermissionDashboard() {
                 </div>
               </div>
 
-              <button
+              <Button
                 className="modal-close"
                 onClick={() =>
                   setShowPendingPopup(false)
                 }
               >
                 <X size={18} />
-              </button>
+              </Button>
             </div>
 
             <div className="modal-body">
@@ -1004,7 +994,7 @@ export default function PermissionDashboard() {
                         flexWrap: 'wrap',
                       }}
                     >
-                      <button
+                      <Button
                         className="btn btn-outline"
                         onClick={() => {
                           setShowPendingPopup(
@@ -1015,10 +1005,10 @@ export default function PermissionDashboard() {
                       >
                         <Eye size={15} />
                         View
-                      </button>
+                      </Button>
 
                       {p.attachment?.fileName && (
-                        <button
+                        <Button
                           className="btn btn-outline"
                           onClick={() =>
                             handleViewAttachment(
@@ -1028,10 +1018,10 @@ export default function PermissionDashboard() {
                         >
                           <Eye size={15} />
                           Document
-                        </button>
+                        </Button>
                       )}
 
-                      <button
+                      <Button
                         className="btn btn-danger"
                         disabled={actionLoading}
                         onClick={() =>
@@ -1043,9 +1033,9 @@ export default function PermissionDashboard() {
                       >
                         <XCircle size={15} />
                         Reject
-                      </button>
+                      </Button>
 
-                      <button
+                      <Button
                         className="btn btn-success"
                         disabled={actionLoading}
                         onClick={() =>
@@ -1057,7 +1047,7 @@ export default function PermissionDashboard() {
                       >
                         <CheckCircle2 size={15} />
                         Approve
-                      </button>
+                      </Button>
                     </div>
                   </div>
                 ))}
@@ -1076,14 +1066,14 @@ export default function PermissionDashboard() {
             </div>
 
             <div className="modal-footer">
-              <button
+              <Button variant="outline"
                 className="btn btn-outline"
                 onClick={() =>
                   setShowPendingPopup(false)
                 }
               >
                 Review Later
-              </button>
+              </Button>
             </div>
           </div>
         </div>

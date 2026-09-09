@@ -2,6 +2,9 @@ import React, { useEffect, useState } from 'react';
 import { Users } from 'lucide-react';
 import TopBar from '../components/TopBar';
 import api from '../api/axios';
+import { Badge } from '../components/ui/badge';
+import { Label } from '../components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
 
 export default function CoordinatorDashboard() {
   const [members, setMembers] = useState([]);
@@ -64,7 +67,7 @@ export default function CoordinatorDashboard() {
             className="form-group"
             style={{ marginBottom: 0 }}
           >
-            <label
+            <Label
               className="form-label"
               style={{ fontSize: 12 }}
             >
@@ -76,25 +79,15 @@ export default function CoordinatorDashboard() {
                 }}
               />
               Team
-            </label>
+            </Label>
 
-            <select
-              className="form-input"
-              value={teamFilter}
-              onChange={e => setTeamFilter(e.target.value)}
-              style={{ fontSize: 13 }}
-            >
-              <option value="">All Teams</option>
-
-              {teams.map(team => (
-                <option
-                  key={team}
-                  value={team}
-                >
-                  {team}
-                </option>
-              ))}
-            </select>
+            <Select value={teamFilter || 'all'} onValueChange={value => setTeamFilter(value === 'all' ? '' : value)}>
+              <SelectTrigger className="form-input" style={{ fontSize: 13 }}><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Teams</SelectItem>
+                {teams.map(team => <SelectItem key={team} value={team}>{team}</SelectItem>)}
+              </SelectContent>
+            </Select>
           </div>
         </div>
 
@@ -243,7 +236,7 @@ export default function CoordinatorDashboard() {
                       </td>
 
                       <td>
-                        <span
+                        <Badge
                           className={`badge ${
                             member.isActive
                               ? 'badge-present'
@@ -254,7 +247,7 @@ export default function CoordinatorDashboard() {
                           {member.isActive
                             ? 'Active'
                             : 'Inactive'}
-                        </span>
+                        </Badge>
                       </td>
 
                     </tr>

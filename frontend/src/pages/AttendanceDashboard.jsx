@@ -13,6 +13,10 @@ import { ChartContainer, ChartTooltipContent } from '../components/ui/chart';
 import api from '../api/axios';
 import toast from 'react-hot-toast';
 import { useAuth } from '../context/AuthContext';
+import { Badge } from '../components/ui/badge';
+import { Button } from '../components/ui/button';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
+import { Tabs, TabsList, TabsTrigger } from '../components/ui/tabs';
 
 import {
   BarChart,
@@ -362,12 +366,8 @@ export default function AttendanceDashboard() {
               Select Team:
             </strong>
 
-            <select
-              value={selectedTeam}
-              onChange={(e) =>
-                setSelectedTeam(e.target.value)
-              }
-              style={{
+            <Select value={selectedTeam} onValueChange={setSelectedTeam}>
+              <SelectTrigger style={{
                 padding: '9px 14px',
                 borderRadius: 8,
                 border: '1px solid #cbd5e1',
@@ -375,17 +375,9 @@ export default function AttendanceDashboard() {
                 fontSize: 14,
                 fontWeight: 600,
                 cursor: 'pointer',
-              }}
-            >
-              {TEAMS.map((team) => (
-                <option
-                  key={team}
-                  value={team}
-                >
-                  {team}
-                </option>
-              ))}
-            </select>
+              }}><SelectValue /></SelectTrigger>
+              <SelectContent>{TEAMS.map((team) => <SelectItem key={team} value={team}>{team}</SelectItem>)}</SelectContent>
+            </Select>
 
             <span
               style={{
@@ -403,17 +395,11 @@ export default function AttendanceDashboard() {
 
           <div className="attendance-filters">
 
-            {ROLES.map((r) => (
-              <button
-                key={r}
-                className={`tab-btn ${
-                  activeTab === r ? 'active' : ''
-                }`}
-                onClick={() => setActiveTab(r)}
-              >
-                {r}
-              </button>
-            ))}
+            <Tabs value={activeTab} onValueChange={setActiveTab}>
+              <TabsList className="attendance-role-tabs">
+                {ROLES.map((r) => <TabsTrigger key={r} value={r} className={`tab-btn ${activeTab === r ? 'active' : ''}`}>{r}</TabsTrigger>)}
+              </TabsList>
+            </Tabs>
 
             {/* DATE */}
 
@@ -425,13 +411,13 @@ export default function AttendanceDashboard() {
                 marginLeft: 'auto',
               }}
             >
-              <button
+              <Button variant="ghost"
                 className="btn btn-ghost btn-sm"
                 onClick={() => changeDate(-1)}
                 title="Previous Day"
               >
                 <ChevronLeft size={16} />
-              </button>
+              </Button>
 
               <input
                 type="date"
@@ -448,21 +434,21 @@ export default function AttendanceDashboard() {
                 }}
               />
 
-              <button
+              <Button variant="ghost"
                 className="btn btn-ghost btn-sm"
                 onClick={() => changeDate(1)}
                 disabled={selectedDate >= todayStr}
                 title={selectedDate >= todayStr ? "Cannot go to future dates" : "Next Day"}
               >
                 <ChevronRight size={16} />
-              </button>
+              </Button>
             </div>
 
             {/* BULK ACTIONS */}
 
             <div className="bulk-actions">
 
-              <button
+              <Button
                 className="btn btn-success btn-sm"
                 disabled={!canMarkAttendance || members.length === 0}
                 onClick={() =>
@@ -472,9 +458,9 @@ export default function AttendanceDashboard() {
               >
                 <CheckCircle2 size={14} />
                 Mark All Present
-              </button>
+              </Button>
 
-              <button
+              <Button
                 className="btn btn-danger btn-sm"
                 disabled={!canMarkAttendance || members.length === 0}
                 onClick={() =>
@@ -484,15 +470,15 @@ export default function AttendanceDashboard() {
               >
                 <XCircle size={14} />
                 Mark All Absent
-              </button>
+              </Button>
 
-              <button
+              <Button
                 className="btn btn-outline btn-sm"
                 onClick={downloadPDF}
               >
                 <Download size={14} />
                 PDF
-              </button>
+              </Button>
 
             </div>
           </div>
@@ -703,7 +689,7 @@ export default function AttendanceDashboard() {
 
                           {/* PRESENT */}
 
-                          <button
+                          <Button
                             className={`btn btn-sm ${
                               m.status ===
                               'Present'
@@ -727,11 +713,11 @@ export default function AttendanceDashboard() {
                             <CheckCircle2
                               size={14}
                             />
-                          </button>
+                          </Button>
 
                           {/* ABSENT */}
 
-                          <button
+                          <Button
                             className={`btn btn-sm ${
                               m.status ===
                               'Absent'
@@ -755,7 +741,7 @@ export default function AttendanceDashboard() {
                             <XCircle
                               size={14}
                             />
-                          </button>
+                          </Button>
 
                         </div>
 
