@@ -99,13 +99,16 @@ export function AttendanceDoughnutChart({ data }) {
 export function AttendanceTrendChart({ data }) {
   return (
     <ResponsiveContainer width="100%" height="100%">
-      <BarChart data={data} margin={{ top: 8, right: 8, left: -20, bottom: 8 }}>
+      <BarChart data={data} margin={{ top: 8, right: 8, left: -20, bottom: 18 }}>
         <XAxis
           dataKey="name"
           axisLine={false}
           tickLine={false}
           tick={{ fill: '#64748b', fontSize: 10 }}
-          interval="preserveStartEnd"
+          interval={data.length > 14 ? 2 : 0}
+          angle={data.length > 14 ? -35 : 0}
+          textAnchor={data.length > 14 ? 'end' : 'middle'}
+          height={data.length > 14 ? 42 : 24}
         />
         <YAxis
           axisLine={false}
