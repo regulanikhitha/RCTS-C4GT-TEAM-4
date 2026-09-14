@@ -108,7 +108,11 @@ export default function PermissionDashboard() {
   // SEARCH + FILTER
   // --------------------------------------------------
 
-  const search = (adminSearch || '').trim().toLowerCase();
+  // Admin search must never affect coordinator or student request lists.
+  const search =
+    user?.role === 'admin'
+      ? (adminSearch || '').trim().toLowerCase()
+      : '';
 
   const filteredPermissions = permissions.filter((p) => {
     // Student sees only own requests

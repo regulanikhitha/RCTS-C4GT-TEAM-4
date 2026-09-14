@@ -50,6 +50,13 @@ export function AuthProvider({ children }) {
 
       setUser(data.user);
 
+      // An admin search is session-specific. Clear it when another role signs in
+      // so it cannot carry over into coordinator views.
+      if (data.user.role !== 'admin') {
+        setAdminSearchState('');
+        localStorage.removeItem('c4gt_admin_search');
+      }
+
       const redirectByRole = {
         admin: '/admin-dashboard',
         coordinator: '/coordinator-dashboard',
@@ -77,8 +84,10 @@ export function AuthProvider({ children }) {
   const logout = () => {
     localStorage.removeItem('c4gt_token');
     localStorage.removeItem('c4gt_user');
+    localStorage.removeItem('c4gt_admin_search');
 
     setUser(null);
+    setAdminSearchState('');
 
     window.location.href = '/';
   };

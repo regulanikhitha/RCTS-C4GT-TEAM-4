@@ -62,7 +62,8 @@ function getTodayString() {
 }
 
 export default function AttendanceDashboard() {
-  const { adminSearch } = useAuth();
+  const { user, adminSearch } = useAuth();
+  const isAdmin = user?.role === 'admin';
 
   const todayStr = getTodayString();
   const [selectedDate, setSelectedDate] = useState(todayStr);
@@ -113,7 +114,10 @@ export default function AttendanceDashboard() {
       const allMembers = attRes.data.members || [];
 
       // Admin search filter
-      const searchQuery = (adminSearch || '').trim().toLowerCase();
+      // Do not apply a previous admin search to coordinator attendance views.
+      const searchQuery = isAdmin
+        ? (adminSearch || '').trim().toLowerCase()
+        : '';
 
       const filtered = searchQuery
         ? allMembers.filter((member) => {
@@ -166,7 +170,7 @@ export default function AttendanceDashboard() {
     } finally {
       setLoading(false);
     }
-  }, [selectedDate, selectedTeam, activeTab, adminSearch]);
+  }, [selectedDate, selectedTeam, activeTab, adminSearch, isAdmin]);
 
   useEffect(() => {
     fetchAttendance();

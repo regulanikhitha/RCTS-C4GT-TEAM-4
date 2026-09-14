@@ -66,7 +66,11 @@ export default function Dashboard() {
   }, [fetchData]);
 
   // Search filter
-  const searchQuery = (adminSearch || '').trim().toLowerCase();
+  // The global search is intentionally scoped to the admin dashboard.
+  const searchQuery =
+    user?.role === 'admin'
+      ? (adminSearch || '').trim().toLowerCase()
+      : '';
 
   // Team + Search filter
   const filteredMembers = dailyData?.members

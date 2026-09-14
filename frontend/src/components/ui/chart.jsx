@@ -105,21 +105,23 @@ export function AttendanceTrendChart({ data }) {
           axisLine={false}
           tickLine={false}
           tick={{ fill: '#64748b', fontSize: 10 }}
-          interval={data.length > 14 ? 2 : 0}
-          angle={data.length > 14 ? -35 : 0}
+          // Keep every day visible for the monthly student attendance view.
+          interval={0}
+          minTickGap={0}
+          angle={data.length > 14 ? -55 : 0}
           textAnchor={data.length > 14 ? 'end' : 'middle'}
-          height={data.length > 14 ? 42 : 24}
+          height={data.length > 14 ? 52 : 24}
         />
         <YAxis
           axisLine={false}
           domain={[0, 1]}
           ticks={[0, 1]}
-          tickFormatter={(value) => (value === 1 ? 'Recorded' : '')}
+          tickFormatter={(value) => (value === 1 ? ' ' : '')}
           tickLine={false}
           tick={{ fill: '#64748b', fontSize: 11 }}
         />
         <Tooltip content={<ChartTooltipContent />} cursor={{ fill: 'rgba(15, 23, 42, 0.04)' }} />
-        <Bar dataKey="value" name="Attendance status" radius={[5, 5, 0, 0]} maxBarSize={28} {...animatedBarProps}>
+        <Bar dataKey="value" name="Attendance status" radius={[5, 5, 0, 0]} maxBarSize={25} {...animatedBarProps}>
           {data.map((entry) => (
             <Cell key={entry.name} fill={entry.status === 'Present' ? PRESENT_COLOR : ABSENT_COLOR} />
           ))}
