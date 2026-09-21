@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import toast from 'react-hot-toast';
 import { Button } from '../components/ui/button';
 
 export default function Landing() {
@@ -25,30 +24,8 @@ export default function Landing() {
     return 'Student';
   };
 
-  const goToDashboard = () => {
-    setShowLoginPopup(true);
-  };
-
   const handleLogin = () => {
     setShowLoginPopup(true);
-  };
-
-  const handleDashboardCardClick = (route) => {
-    const routeMap = {
-      '/admin-dashboard': 'admin',
-      '/coordinator-dashboard': 'coordinator',
-      '/student-dashboard': 'student',
-      '/permission-dashboard': 'admin',
-    };
-
-    const role = routeMap[route] || 'admin';
-    loginAsRole(role, route, `${labelFromRole(role)} User`);
-  };
-
-  const handleSubmit = (event) => {
-    event.preventDefault();
-    toast.success('Thanks! Your message has been noted.');
-    event.target.reset();
   };
 
   return (
@@ -144,7 +121,7 @@ export default function Landing() {
       )}
 
       <header className="lp-nav">
-        <Button type="button" variant="ghost" className="lp-brand" onClick={handleLogin}>
+        <div className="lp-brand">
           <div className="lp-brand-badge">
             <img src="/logo.svg" width="36" height="36" alt="C4GT HUB logo" />
           </div>
@@ -152,7 +129,7 @@ export default function Landing() {
             <span className="brand">C4GT HUB</span>
             <span className="sub">@KIET</span>
           </span>
-        </Button>
+        </div>
 
         <div className="lp-nav-right">
         </div>
@@ -163,7 +140,7 @@ export default function Landing() {
           <div>
             <span className="lp-eyebrow">
               <span className="lp-eyebrow-dot" />
-              Built for the C4GT cohort at KIET
+              Built for the C4GT HUB at KIET
             </span>
             <h1>
               One place to track <span className="lp-grad">attendance</span>, permissions &amp; every team member.
@@ -203,20 +180,18 @@ export default function Landing() {
             <div className="lp-hero-card-body">
               <div className="lp-dashboard-mini-grid">
                 {[
-                  { label: 'Admin', route: '/admin-dashboard', value: '94%', tint: 'purple' },
-                  { label: 'Coordinator', route: '/coordinator-dashboard', value: '86%', tint: 'blue' },
-                  { label: 'Student', route: '/student-dashboard', value: '91%', tint: 'green' },
-                  { label: 'Permission', route: '/permission-dashboard', value: '72%', tint: 'orange' },
+                  { label: 'Admin', value: '94%', tint: 'purple' },
+                  { label: 'Coordinator', value: '86%', tint: 'blue' },
+                  { label: 'Student', value: '91%', tint: 'green' },
+                  { label: 'Permission', value: '72%', tint: 'orange' },
                 ].map((item) => (
-                  <Button
+                  <div
                     key={item.label}
-                    type="button"
                     className={`lp-mini-dashboard-card ${item.tint}`}
-                    onClick={() => handleDashboardCardClick(item.route)}
                   >
                     <span>{item.label}</span>
                     <strong>{item.value}</strong>
-                  </Button>
+                  </div>
                 ))}
               </div>
 

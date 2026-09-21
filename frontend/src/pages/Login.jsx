@@ -85,7 +85,7 @@ export default function Login() {
                 type="email"
                 className="form-input"
                 style={{ paddingLeft: 36 }}
-                placeholder="coordinator@kiet.edu"
+                placeholder="Enter your email"
                 required
                 value={form.email}
                 onChange={e => setForm(f => ({ ...f, email: e.target.value }))}

@@ -923,12 +923,8 @@ textarea.form-input { resize: vertical; min-height: 80px; }
   gap: 10px;
   padding: 4px 8px 4px 4px;
   border-radius: 999px;
-  transition: background 0.2s ease, transform 0.15s ease;
-}
-
-.lp-brand:hover {
-  background: #eef2ff;
-  transform: translateY(-1px);
+  cursor: default;
+  user-select: none;
 }
 
 .lp-brand-text {
@@ -1234,6 +1230,8 @@ textarea.form-input { resize: vertical; min-height: 80px; }
   color: var(--lp-ink);
   text-align: left;
   transition: all 0.2s ease;
+  cursor: default;
+  user-select: none;
 }
 
 .lp-mini-dashboard-card:hover {
