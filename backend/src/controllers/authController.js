@@ -67,7 +67,7 @@ const login = async (req, res, next) => {
 
     if (!user.isActive) {
       return res.status(403).json({
-        message: 'Account is deactivated. Please contact an administrator.',
+        message: 'Account is deactivated. Please contact an admin.',
       });
     }
 

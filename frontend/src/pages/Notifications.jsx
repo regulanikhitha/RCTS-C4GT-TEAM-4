@@ -48,7 +48,7 @@ const INITIAL_NOTIFICATIONS = [
       'Mandatory orientation session for all members on open-source mentorship tracks, milestone review expectations, and weekly syncs. Join via Google Meet link shared on Slack.',
     sendTo: 'All Members (81)',
     status: 'published',
-    createdBy: { name: 'Chittuluri Meena', role: 'coordinator' },
+    createdBy: { name: 'Coordinator', role: 'coordinator' },
     createdAt: '2026-09-03T08:00:00.000Z',
   },
   {
@@ -62,7 +62,7 @@ const INITIAL_NOTIFICATIONS = [
       '48-Hour Open Source Sprint! Submit PRs to partner repositories to earn points and claim top developer badges. Guidelines and leaderboards will be updated on the portal.',
     sendTo: 'All Members (81)',
     status: 'published',
-    createdBy: { name: 'System Administrator', role: 'admin' },
+    createdBy: { name: 'Admin', role: 'admin' },
     createdAt: '2026-09-02T10:30:00.000Z',
   },
   {
@@ -76,7 +76,7 @@ const INITIAL_NOTIFICATIONS = [
       'The hub workspace and scheduled physical lab sessions will remain closed on September 10th. Normal operations resume the following day.',
     sendTo: 'All Members (81)',
     status: 'published',
-    createdBy: { name: 'System Administrator', role: 'admin' },
+    createdBy: { name: 'Admin', role: 'admin' },
     createdAt: '2026-09-01T09:00:00.000Z',
   },
   {
@@ -90,7 +90,7 @@ const INITIAL_NOTIFICATIONS = [
       'Interactive workshop on scaling vector databases and LLM orchestration with practical code walkthroughs.',
     sendTo: 'All Members (81)',
     status: 'published',
-    createdBy: { name: 'Chittuluri Meena', role: 'coordinator' },
+    createdBy: { name: 'Coordinator', role: 'coordinator' },
     createdAt: '2026-08-30T14:15:00.000Z',
   },
   {
@@ -104,7 +104,7 @@ const INITIAL_NOTIFICATIONS = [
       'All members must verify their attendance records and submit pending leave permission requests before the deadline.',
     sendTo: 'All Members (81)',
     status: 'published',
-    createdBy: { name: 'System Administrator', role: 'admin' },
+    createdBy: { name: 'Admin', role: 'admin' },
     createdAt: '2026-08-24T11:00:00.000Z',
   },
   {
@@ -118,7 +118,7 @@ const INITIAL_NOTIFICATIONS = [
       'Draft outline for upcoming individual team syncs. Do not publish until final reviewer dates are confirmed.',
     sendTo: 'All Members (81)',
     status: 'draft',
-    createdBy: { name: 'System Administrator', role: 'admin' },
+    createdBy: { name: 'Admin', role: 'admin' },
     createdAt: '2026-09-02T16:00:00.000Z',
   },
 ];
@@ -131,6 +131,24 @@ const NOTIFICATION_TYPES = [
   'Other',
 ];
 
+const sanitizeAuthorName = (name, role) => {
+  if (!name || name === 'System Administrator' || name === 'Administrator') {
+    return role === 'coordinator' ? 'Coordinator' : 'Admin';
+  }
+  return name;
+};
+
+const sanitizeNotification = (item) => {
+  if (!item) return item;
+  return {
+    ...item,
+    createdBy: {
+      ...item.createdBy,
+      name: sanitizeAuthorName(item.createdBy?.name, item.createdBy?.role),
+    },
+  };
+};
+
 export default function Notifications() {
   const { user } = useAuth();
   const isAdminOrCoordinator =
@@ -140,9 +158,11 @@ export default function Notifications() {
   const [notifications, setNotifications] = useState(() => {
     try {
       const saved = localStorage.getItem('c4gt_notifications');
-      return saved ? JSON.parse(saved) : INITIAL_NOTIFICATIONS;
+      return saved
+        ? JSON.parse(saved).map(sanitizeNotification)
+        : INITIAL_NOTIFICATIONS.map(sanitizeNotification);
     } catch {
-      return INITIAL_NOTIFICATIONS;
+      return INITIAL_NOTIFICATIONS.map(sanitizeNotification);
     }
   });
 
@@ -186,7 +206,7 @@ export default function Notifications() {
       try {
         const { data } = await api.get('/notifications');
         if (data && data.success && Array.isArray(data.data) && data.data.length > 0) {
-          if (isMounted) setNotifications(data.data);
+          if (isMounted) setNotifications(data.data.map(sanitizeNotification));
         }
       } catch (err) {
         // Fallback to local state if backend is offline or unseeded
@@ -323,7 +343,7 @@ export default function Notifications() {
       status: targetStatus,
       sendTo: 'All Members (81)',
       createdBy: {
-        name: user?.name || 'Administrator',
+        name: user?.name || 'Admin',
         role: user?.role || 'admin',
       },
     };
@@ -632,7 +652,7 @@ export default function Notifications() {
                     {/* Author & Actions */}
                     <div className="card-footer-action-row">
                       <span className="author-tag">
-                        By {item.createdBy?.name || 'Admin'}
+                        By {sanitizeAuthorName(item.createdBy?.name, item.createdBy?.role)}
                       </span>
 
                       {isAdminOrCoordinator && (

@@ -11,7 +11,7 @@ import { useAuth } from '../context/AuthContext';
 export default function StudentDashboard() {
   const navigate = useNavigate();
   const { user } = useAuth();
-  
+
   // Popup Notification State
   const [latestNotification, setLatestNotification] = useState(null);
   const [showNotificationPopup, setShowNotificationPopup] = useState(false);
@@ -65,7 +65,7 @@ export default function StudentDashboard() {
       return {
         name: attendancePeriod === 'weekly'
           ? date.toLocaleDateString('en-US', { weekday: 'short' })
-          : String(index + 1),
+          : `${index + 1} ${date.toLocaleDateString('en-US', { weekday: 'short' })}`,
         status,
         value: status ? 1 : 0,
         present: status === 'Present' ? 1 : 0,
@@ -100,7 +100,7 @@ export default function StudentDashboard() {
             const parsed = JSON.parse(saved);
             publishedList = parsed.filter((n) => n.status === 'published');
           }
-        } catch (e) {}
+        } catch (e) { }
       }
 
       if (publishedList.length > 0 && isMounted) {
@@ -186,28 +186,31 @@ export default function StudentDashboard() {
             </div>
           </div>
 
-          <div className="student-attendance-chart-grid">
-            <div className="student-attendance-trend">
-              <div className="student-chart-heading">
-                <div>
-                  <strong>Attendance activity</strong>
-                  <span>{attendancePeriod === 'weekly' ? 'Last 7 days' : 'Current month'}</span>
-                </div>
-                <div className="chart-period-toggle" role="group" aria-label="Attendance period">
-                  <button className={attendancePeriod === 'weekly' ? 'active' : ''} onClick={() => setAttendancePeriod('weekly')}>Weekly</button>
-                  <button className={attendancePeriod === 'monthly' ? 'active' : ''} onClick={() => setAttendancePeriod('monthly')}>Monthly</button>
-                </div>
+          {/* Full-width Attendance Activity Trend Bar Chart */}
+          <div className="student-attendance-trend-full">
+            <div className="student-chart-heading">
+              <div>
+                <strong>Attendance activity</strong>
+                <span>{attendancePeriod === 'weekly' ? 'Last 7 days' : 'Current month'}</span>
               </div>
-              <ChartContainer height={250} className="student-trend-chart">
-                <AttendanceTrendChart data={trendData} />
-              </ChartContainer>
+              <div className="chart-period-toggle" role="group" aria-label="Attendance period">
+                <button className={attendancePeriod === 'weekly' ? 'active' : ''} onClick={() => setAttendancePeriod('weekly')}>Weekly</button>
+                <button className={attendancePeriod === 'monthly' ? 'active' : ''} onClick={() => setAttendancePeriod('monthly')}>Monthly</button>
+              </div>
             </div>
+            <ChartContainer height={290} className="student-trend-chart">
+              <AttendanceTrendChart data={trendData} />
+            </ChartContainer>
+          </div>
 
+          {/* Bottom Section: Pie Chart on the Left + Summary Stats on the Right */}
+          <div className="student-bottom-charts-row">
+            {/* Left: Attendance Percentage Doughnut / Pie Chart */}
             <div className="student-attendance-percentage">
               <div className="student-chart-heading">
                 <div>
                   <strong>Attendance percentage</strong>
-                  <span>All recorded days</span>
+                  <span>All recorded sessions</span>
                 </div>
               </div>
               <ChartContainer height={220} className="student-percentage-chart">
@@ -220,6 +223,40 @@ export default function StudentDashboard() {
               <div className="student-percentage-legend">
                 <span><i style={{ background: '#0f766e' }} />Present <b>{presentCount}</b></span>
                 <span><i style={{ background: '#e11d48' }} />Absent <b>{absentCount}</b></span>
+              </div>
+            </div>
+
+            {/* Right: Quick Insights & Attendance Standing */}
+            <div className="student-attendance-insights">
+              <div className="student-chart-heading">
+                <div>
+                  <strong>Session Summary & Standing</strong>
+                  <span>Overview of participation</span>
+                </div>
+              </div>
+              <div className="student-insights-grid">
+                <div className="student-insight-item">
+                  <span className="insight-label">Tracked Sessions</span>
+                  <strong className="insight-val">{presentCount + absentCount} Days</strong>
+                  <span className="insight-sub">Total marked days</span>
+                </div>
+                <div className="student-insight-item">
+                  <span className="insight-label">Present Days</span>
+                  <strong className="insight-val text-emerald">{presentCount} Days</strong>
+                  <span className="insight-sub">Verified attendance</span>
+                </div>
+                <div className="student-insight-item">
+                  <span className="insight-label">Missed Days</span>
+                  <strong className="insight-val text-rose">{absentCount} Days</strong>
+                  <span className="insight-sub">Unattended sessions</span>
+                </div>
+                <div className="student-insight-item">
+                  <span className="insight-label">Compliance Status</span>
+                  <strong className={`insight-val ${attendancePercentage >= 75 ? 'text-emerald' : 'text-amber'}`}>
+                    {attendancePercentage >= 75 ? '✓ On Track' : '⚠ Action Needed'}
+                  </strong>
+                  <span className="insight-sub">{attendancePercentage >= 75 ? 'Meets ≥ 75% target' : 'Below 75% threshold'}</span>
+                </div>
               </div>
             </div>
           </div>
@@ -316,7 +353,7 @@ export default function StudentDashboard() {
                   {latestNotification.type}
                 </Badge>
                 <span style={{ fontSize: '12px', color: '#94a3b8', fontWeight: '500' }}>
-                  By {latestNotification.createdBy?.name || 'Admin'}
+                  By {(!latestNotification.createdBy?.name || latestNotification.createdBy?.name === 'System Administrator' || latestNotification.createdBy?.name === 'Administrator') ? 'Admin' : latestNotification.createdBy.name}
                 </span>
               </div>
 

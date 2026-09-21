@@ -69,7 +69,7 @@ export default function AttendanceDashboard() {
   const [selectedDate, setSelectedDate] = useState(todayStr);
   const isToday = selectedDate === todayStr;
   const isPastDate = selectedDate < todayStr;
-  const canMarkAttendance = isToday;
+  const canMarkAttendance = isAdmin ? (isToday || isPastDate) : isToday;
 
   const [selectedTeam, setSelectedTeam] = useState('All Teams');
   const [activeTab, setActiveTab] = useState('All Members');
@@ -103,10 +103,9 @@ export default function AttendanceDashboard() {
         api.get(`/attendance?${params.toString()}`),
 
         api.get(
-          `/attendance/stats?date=${selectedDate}${
-            selectedTeam !== 'All Teams'
-              ? `&team=${encodeURIComponent(selectedTeam)}`
-              : ''
+          `/attendance/stats?date=${selectedDate}${selectedTeam !== 'All Teams'
+            ? `&team=${encodeURIComponent(selectedTeam)}`
+            : ''
           }`
         ),
       ]);
@@ -121,19 +120,19 @@ export default function AttendanceDashboard() {
 
       const filtered = searchQuery
         ? allMembers.filter((member) => {
-            const haystack = [
-              member.name,
-              member.role,
-              member.memberId,
-              member.email,
-              member.team,
-            ]
-              .filter(Boolean)
-              .join(' ')
-              .toLowerCase();
+          const haystack = [
+            member.name,
+            member.role,
+            member.memberId,
+            member.email,
+            member.team,
+          ]
+            .filter(Boolean)
+            .join(' ')
+            .toLowerCase();
 
-            return haystack.includes(searchQuery);
-          })
+          return haystack.includes(searchQuery);
+        })
         : allMembers;
 
       setMembers(filtered);
@@ -150,12 +149,12 @@ export default function AttendanceDashboard() {
         ).length,
         attendancePercentage: filtered.length
           ? Math.round(
-              (filtered.filter(
-                (m) => m.status === 'Present'
-              ).length /
-                filtered.length) *
-                100
-            )
+            (filtered.filter(
+              (m) => m.status === 'Present'
+            ).length /
+              filtered.length) *
+            100
+          )
           : 0,
       });
     } catch (err) {
@@ -305,28 +304,28 @@ export default function AttendanceDashboard() {
   // Chart data
   const chartData = stats
     ? [
-        {
-          name: 'Junior Devs',
-          present:
-            stats.roleStats?.juniorDevelopers?.present ?? 0,
-          absent:
-            stats.roleStats?.juniorDevelopers?.absent ?? 0,
-        },
-        {
-          name: 'Senior Devs',
-          present:
-            stats.roleStats?.seniorDevelopers?.present ?? 0,
-          absent:
-            stats.roleStats?.seniorDevelopers?.absent ?? 0,
-        },
-        {
-          name: 'Leads',
-          present:
-            stats.roleStats?.leads?.present ?? 0,
-          absent:
-            stats.roleStats?.leads?.absent ?? 0,
-        },
-      ]
+      {
+        name: 'Junior Devs',
+        present:
+          stats.roleStats?.juniorDevelopers?.present ?? 0,
+        absent:
+          stats.roleStats?.juniorDevelopers?.absent ?? 0,
+      },
+      {
+        name: 'Senior Devs',
+        present:
+          stats.roleStats?.seniorDevelopers?.present ?? 0,
+        absent:
+          stats.roleStats?.seniorDevelopers?.absent ?? 0,
+      },
+      {
+        name: 'Leads',
+        present:
+          stats.roleStats?.leads?.present ?? 0,
+        absent:
+          stats.roleStats?.leads?.absent ?? 0,
+      },
+    ]
     : [];
 
   return (
@@ -510,12 +509,18 @@ export default function AttendanceDashboard() {
             <div>
               {isToday ? (
                 <span style={{ fontSize: 12, padding: '3px 10px', borderRadius: 12, background: '#dcfce7', color: '#15803d', fontWeight: 600 }}>
-                  Today's Attendance (Mark & Edit Active)
+                  Today's Attendance (Mark &amp; Edit Active)
                 </span>
               ) : isPastDate ? (
-                <span style={{ fontSize: 12, padding: '3px 10px', borderRadius: 12, background: '#fef3c7', color: '#92400e', fontWeight: 600 }}>
-                  Past Date — View Only (Read Only)
-                </span>
+                isAdmin ? (
+                  <span style={{ fontSize: 12, padding: '3px 10px', borderRadius: 12, background: '#dbeafe', color: '#1d4ed8', fontWeight: 600 }}>
+                    Past Date — Admin Edit Mode Active
+                  </span>
+                ) : (
+                  <span style={{ fontSize: 12, padding: '3px 10px', borderRadius: 12, background: '#fef3c7', color: '#92400e', fontWeight: 600 }}>
+                    Past Date — View Only (Read Only)
+                  </span>
+                )
               ) : null}
             </div>
           </div>
@@ -641,24 +646,23 @@ export default function AttendanceDashboard() {
                       >
                         {m.markedTime
                           ? new Date(
-                              m.markedTime
-                            ).toLocaleTimeString(
-                              'en-IN',
-                              {
-                                hour: '2-digit',
-                                minute:
-                                  '2-digit',
-                              }
-                            )
+                            m.markedTime
+                          ).toLocaleTimeString(
+                            'en-IN',
+                            {
+                              hour: '2-digit',
+                              minute:
+                                '2-digit',
+                            }
+                          )
                           : '—'}
                       </td>
 
                       <td>
                         <span
-                          className={`badge badge-${
-                            m.status?.toLowerCase() ||
+                          className={`badge badge-${m.status?.toLowerCase() ||
                             'unmarked'
-                          }`}
+                            }`}
                         >
                           {m.status ||
                             'Unmarked'}
@@ -684,12 +688,11 @@ export default function AttendanceDashboard() {
                           {/* PRESENT */}
 
                           <Button
-                            className={`btn btn-sm ${
-                              m.status ===
+                            className={`btn btn-sm ${m.status ===
                               'Present'
-                                ? 'btn-success'
-                                : 'btn-outline'
-                            }`}
+                              ? 'btn-success'
+                              : 'btn-outline'
+                              }`}
                             disabled={
                               !canMarkAttendance ||
                               updating ===
@@ -712,12 +715,11 @@ export default function AttendanceDashboard() {
                           {/* ABSENT */}
 
                           <Button
-                            className={`btn btn-sm ${
-                              m.status ===
+                            className={`btn btn-sm ${m.status ===
                               'Absent'
-                                ? 'btn-danger'
-                                : 'btn-outline'
-                            }`}
+                              ? 'btn-danger'
+                              : 'btn-outline'
+                              }`}
                             disabled={
                               !canMarkAttendance ||
                               updating ===
@@ -812,7 +814,7 @@ export default function AttendanceDashboard() {
               <CardTitle>
                 Role-wise Attendance Breakdown
                 {selectedTeam !==
-                'All Teams'
+                  'All Teams'
                   ? ` — ${selectedTeam}`
                   : ''}
               </CardTitle>

@@ -321,7 +321,7 @@ export default function PermissionModal({ onClose, onSuccess }) {
             >
               Your permission request has been submitted
               successfully. It is now waiting for approval
-              from the administrator or coordinator.
+              from the admin or coordinator.
             </p>
 
             {/* STATUS */}

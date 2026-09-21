@@ -192,7 +192,7 @@ const sendLoginNotificationEmail = async ({ email, name, loginTime, ipAddress, u
 const sendOtpEmail = async ({ email, name, otp, expiresInMinutes = 10 }) => {
   const subject = '🔑 C4GT Hub Attendance — Password Reset Verification OTP';
 
-  const text = `Hello ${name},\n\nYou recently requested to reset your password for your C4GT Hub Attendance account.\n\nYour One-Time Password (OTP) is: ${otp}\n\nThis OTP is valid for ${expiresInMinutes} minutes and will expire automatically. You have a maximum of 5 verification attempts.\n\nSecurity Notice:\nNever share your OTP with anyone. C4GT administrators will never ask for your password or OTP.\n\nIf you did not request a password reset, please ignore this email.\n\nBest regards,\nC4GT Hub Attendance Team`;
+  const text = `Hello ${name},\n\nYou recently requested to reset your password for your C4GT Hub Attendance account.\n\nYour One-Time Password (OTP) is: ${otp}\n\nThis OTP is valid for ${expiresInMinutes} minutes and will expire automatically. You have a maximum of 5 verification attempts.\n\nSecurity Notice:\nNever share your OTP with anyone. C4GT admins will never ask for your password or OTP.\n\nIf you did not request a password reset, please ignore this email.\n\nBest regards,\nC4GT Hub Attendance Team`;
 
   const html = `
     <div style="font-family: 'Segoe UI', Arial, sans-serif; background-color: #f8fafc; padding: 30px 15px; color: #1e293b;">
@@ -239,7 +239,7 @@ const sendPasswordResetConfirmationEmail = async ({ email, name, resetTime }) =>
 
   const subject = '✅ C4GT Hub Attendance — Password Reset Successful';
 
-  const text = `Hello ${name},\n\nYour password for C4GT Hub Attendance was successfully updated on ${formattedTime}.\n\nIf you performed this change, no further action is needed.\n\nIf you did not perform this change, please contact your system administrator immediately.\n\nBest regards,\nC4GT Hub Attendance Security Team`;
+  const text = `Hello ${name},\n\nYour password for C4GT Hub Attendance was successfully updated on ${formattedTime}.\n\nIf you performed this change, no further action is needed.\n\nIf you did not perform this change, please contact your admin immediately.\n\nBest regards,\nC4GT Hub Attendance Security Team`;
 
   const html = `
     <div style="font-family: 'Segoe UI', Arial, sans-serif; background-color: #f8fafc; padding: 30px 15px; color: #1e293b;">

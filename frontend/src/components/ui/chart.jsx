@@ -56,7 +56,7 @@ export function AttendanceBarChart({ data, showLegend = false }) {
     <ResponsiveContainer width="100%" height="100%">
       <BarChart data={data} margin={{ top: 8, right: 8, left: -20, bottom: showLegend ? 8 : 0 }}>
         <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#64748b', fontSize: 11 }} />
-        <YAxis allowDecimals={false} axisLine={false} tickLine={false} tick={{ fill: '#64748b', fontSize: 11 }} />
+        <YAxis allowDecimals={false} axisLine={false} tickLine={false} tick={{ fill: '#64748b', fontSize: 11 }} domain={[0, 36]} />
         <Tooltip content={<ChartTooltipContent />} cursor={{ fill: 'rgba(15, 23, 42, 0.04)' }} />
         {showLegend && (
           <Legend
@@ -96,21 +96,43 @@ export function AttendanceDoughnutChart({ data }) {
   );
 }
 
+function StraightXAxisTick({ x, y, payload }) {
+  if (!payload || payload.value === undefined) return null;
+  const val = String(payload.value);
+  const parts = val.split(' ');
+  if (parts.length > 1) {
+    const [dayNum, dayName] = parts;
+    return (
+      <g transform={`translate(${x},${y})`}>
+        <text x={0} y={0} dy={12} textAnchor="middle" fill="#334155" fontSize={10} fontWeight={700}>
+          {dayNum}
+        </text>
+        <text x={0} y={0} dy={23} textAnchor="middle" fill="#64748b" fontSize={9} fontWeight={500}>
+          {dayName}
+        </text>
+      </g>
+    );
+  }
+
+  return (
+    <text x={x} y={y} dy={14} textAnchor="middle" fill="#64748b" fontSize={11} fontWeight={600}>
+      {val}
+    </text>
+  );
+}
+
 export function AttendanceTrendChart({ data }) {
   return (
     <ResponsiveContainer width="100%" height="100%">
-      <BarChart data={data} margin={{ top: 8, right: 8, left: -20, bottom: 18 }}>
+      <BarChart data={data} margin={{ top: 10, right: 10, left: -20, bottom: 12 }}>
         <XAxis
           dataKey="name"
           axisLine={false}
           tickLine={false}
-          tick={{ fill: '#64748b', fontSize: 10 }}
-          // Keep every day visible for the monthly student attendance view.
           interval={0}
           minTickGap={0}
-          angle={data.length > 14 ? -55 : 0}
-          textAnchor={data.length > 14 ? 'end' : 'middle'}
-          height={data.length > 14 ? 52 : 24}
+          tick={<StraightXAxisTick />}
+          height={32}
         />
         <YAxis
           axisLine={false}
@@ -121,7 +143,7 @@ export function AttendanceTrendChart({ data }) {
           tick={{ fill: '#64748b', fontSize: 11 }}
         />
         <Tooltip content={<ChartTooltipContent />} cursor={{ fill: 'rgba(15, 23, 42, 0.04)' }} />
-        <Bar dataKey="value" name="Attendance status" radius={[5, 5, 0, 0]} maxBarSize={25} {...animatedBarProps}>
+        <Bar dataKey="value" name="Attendance status" radius={[5, 5, 0, 0]} maxBarSize={28} {...animatedBarProps}>
           {data.map((entry) => (
             <Cell key={entry.name} fill={entry.status === 'Present' ? PRESENT_COLOR : ABSENT_COLOR} />
           ))}

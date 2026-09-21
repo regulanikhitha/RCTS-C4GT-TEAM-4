@@ -28,6 +28,13 @@ export default function Login() {
     navigate('/');
   };
 
+  const isRoleAllowed = (userRole, portalRole) => {
+    if (!portalRole) return true;
+    if (userRole === portalRole) return true;
+    if (userRole === 'admin') return true;
+    return false;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
@@ -41,16 +48,20 @@ export default function Login() {
 
     const userRole = result.user?.role || form.email.split('@')[0];
 
-    if (selectedRole && userRole !== selectedRole) {
+    if (selectedRole && !isRoleAllowed(userRole, selectedRole)) {
       setError(`This login page is only for ${roleLabelMap[selectedRole] || 'the selected'} users. Please use the correct account.`);
       localStorage.removeItem('c4gt_token');
       localStorage.removeItem('c4gt_user');
       return;
     }
 
+    const redirectPath = selectedRole
+      ? (selectedRole === 'student' ? '/student-dashboard' : selectedRole === 'coordinator' ? '/coordinator-dashboard' : '/admin-dashboard')
+      : (result.redirect || (userRole === 'student' ? '/student-dashboard' : userRole === 'coordinator' ? '/coordinator-dashboard' : '/admin-dashboard'));
+
     toast.success('Welcome back!', { duration: 3000 });
     localStorage.removeItem('c4gt_login_role');
-    navigate(result.redirect || '/admin-dashboard');
+    navigate(redirectPath);
   };
 
   return (
@@ -138,7 +149,6 @@ export default function Login() {
             <Button
               type="button"
               variant="secondary"
-              type="button"
               className="btn btn-secondary"
               onClick={handleCancel}
               style={{

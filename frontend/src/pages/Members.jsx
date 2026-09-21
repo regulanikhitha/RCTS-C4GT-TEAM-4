@@ -20,7 +20,7 @@ export default function Members() {
   const [loading, setLoading] = useState(false);
   const [roleFilter, setRoleFilter] = useState('');
   const [teamFilter, setTeamFilter] = useState('');
-  const [departmentFilter, setDepartmentFilter] = useState('');
+
   const [page, setPage] = useState(1);
   const [showForm, setShowForm] = useState(false);
   const [selectedMember, setSelectedMember] = useState(null);
@@ -104,38 +104,23 @@ export default function Members() {
       normalizedMemberTeam === normalizedSelectedTeam;
 
     // -------------------------
-    // DEPARTMENT FILTER
-    // -------------------------
-    const normalizedMemberDepartment =
-      (m.department || '').trim().toLowerCase();
-
-    const normalizedSelectedDepartment =
-      (departmentFilter || '').trim().toLowerCase();
-
-    const matchDepartment =
-      !normalizedSelectedDepartment ||
-      normalizedMemberDepartment === normalizedSelectedDepartment;
-
-    // -------------------------
     // FINAL RESULT
     // -------------------------
     return (
       matchSearch &&
       matchRole &&
-      matchTeam &&
-      matchDepartment
+      matchTeam
     );
   });
 
   useEffect(() => {
     setPage(1);
-  }, [search, roleFilter, teamFilter, departmentFilter]);
+  }, [search, roleFilter, teamFilter]);
 
   const totalPages = Math.ceil(filtered.length / PER_PAGE);
   const paginated = filtered.slice((page - 1) * PER_PAGE, page * PER_PAGE);
 
   const teams = [...new Set(members.map(m => m.team).filter(Boolean))].sort();
-  const departments = [...new Set(members.map(m => m.department).filter(Boolean))].sort();
 
   const handleCreate = async (e) => {
     e.preventDefault();
@@ -223,10 +208,6 @@ export default function Members() {
             <div className="form-group" style={{ marginBottom: 0 }}>
               <Label className="form-label" style={{ fontSize: 12 }}>Team</Label>
               <Select value={teamFilter || 'all'} onValueChange={value => { setTeamFilter(value === 'all' ? '' : value); setPage(1); }}><SelectTrigger className="form-input" style={{ fontSize: 13 }}><SelectValue /></SelectTrigger><SelectContent><SelectItem value="all">All Teams</SelectItem>{teams.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}</SelectContent></Select>
-            </div>
-            <div className="form-group" style={{ marginBottom: 0 }}>
-              <Label className="form-label" style={{ fontSize: 12 }}>Department</Label>
-              <Select value={departmentFilter || 'all'} onValueChange={value => { setDepartmentFilter(value === 'all' ? '' : value); setPage(1); }}><SelectTrigger className="form-input" style={{ fontSize: 13 }}><SelectValue /></SelectTrigger><SelectContent><SelectItem value="all">All Departments</SelectItem>{departments.map(d => <SelectItem key={d} value={d}>{d}</SelectItem>)}</SelectContent></Select>
             </div>
           </div>
         </div>

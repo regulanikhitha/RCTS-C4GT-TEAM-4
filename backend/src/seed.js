@@ -147,43 +147,40 @@ const seedDatabase = async (shouldExit = false) => {
     console.log('👑 Seeding Admin Account...');
     const adminPassword = hashPassword('Admin@123');
     await User.create({
-      name: 'System Administrator',
+      name: 'Admin',
       email: 'admin@c4gt.com',
       password: adminPassword,
       role: 'admin',
       isActive: true,
     });
 
-    // ── 2. Seed Coordinators (Whitelist) ──────────────────────────────────
-    console.log('📋 Seeding Coordinators & Whitelist...');
-    const coordinatorData = [
+    // ── 2. Seed Coordinator (Whitelist & User Account) ───────────────────
+    console.log('📋 Seeding Coordinator & Whitelist...');
+    const coordPassword = hashPassword('Coord@123');
+    const coordList = [
       {
-        name: 'Chittuluri Meena',
-        email: 'meenachittuluri@gmail.com',
-        rollNo: '23JN1A45C0',
+        name: 'Coordinator',
+        email: 'coordinator@c4gt.com',
+        department: 'Program Coordination',
         phone: '8919002723',
-        department: 'TEAM-5 & Program Coordination',
         isActive: true,
       },
       {
-        name: 'Gadam Sai Krupa Sanjeetha',
-        email: 'sanjusanjeetha18@gmail.com',
-        rollNo: '23B21A4304',
+        name: 'Coordinator',
+        email: 'coordinator1@c4gt.com',
+        department: 'Program Operations',
         phone: '8977621830',
-        department: 'TEAM-8 & Program Coordination',
         isActive: true,
       },
     ];
 
-    const coordEmails = coordinatorData.map(c => c.email.toLowerCase().trim());
-
-    for (const coord of coordinatorData) {
-      await Coordinator.create({
+    for (const coord of coordList) {
+      await Coordinator.create(coord);
+      await User.create({
         name: coord.name,
-        email: coord.email.toLowerCase().trim(),
-        rollNo: coord.rollNo,
-        phone: coord.phone,
-        department: coord.department,
+        email: coord.email,
+        password: coordPassword,
+        role: 'coordinator',
         isActive: true,
       });
     }
@@ -197,9 +194,8 @@ const seedDatabase = async (shouldExit = false) => {
       const memberId = `C4GT-${String(idx + 1).padStart(3, '0')}`;
       const { memberRole, department } = roleMap[m.role] || roleMap['JD'];
 
-      // Initial password = roll number (student/coordinator can change after first login)
+      // Initial password = roll number (students can change after first login)
       const initialPassword = hashPassword(m.rollNo);
-      const isCoordinator = coordEmails.includes(m.email.toLowerCase().trim());
 
       memberDocs.push({
         memberId,
@@ -219,7 +215,7 @@ const seedDatabase = async (shouldExit = false) => {
         name:     m.name,
         email:    m.email.toLowerCase().trim(),
         password: initialPassword,
-        role:     isCoordinator ? 'coordinator' : 'student',
+        role:     'student',
         memberId,
         rollNo:   m.rollNo,
         isActive: true,
@@ -228,7 +224,7 @@ const seedDatabase = async (shouldExit = false) => {
 
     await Member.insertMany(memberDocs);
     await User.insertMany(userDocs);
-    console.log(`✅ Seeded ${memberDocs.length} Members & ${userDocs.length} User accounts (${coordinatorData.length} Coordinators, ${userDocs.length - coordinatorData.length} Students).`);
+    console.log(`✅ Seeded ${memberDocs.length} Members & ${userDocs.length} Student User accounts.`);
 
     // ── 4. Seed Initial Attendance Records for Today ──────────────────────
     console.log('📅 Seeding Initial Attendance Records for Today...');
@@ -239,7 +235,7 @@ const seedDatabase = async (shouldExit = false) => {
     memberDocs.forEach((m, index) => {
       const status     = index < 65 ? 'Present' : 'Absent';
       const markedTime = new Date();
-      const markedBy   = 'meenachittuluri@gmail.com';
+      const markedBy   = 'coordinator@c4gt.com';
 
       attendanceRecords.push({ memberId: m.memberId, date: today, status, markedTime, markedBy });
     });
@@ -267,14 +263,15 @@ const seedDatabase = async (shouldExit = false) => {
     console.log('🔑 CREDENTIALS FOR TESTING:');
     console.log('1. Admin:        admin@c4gt.com              / Admin@123');
     console.log('');
-    console.log('2. Authorized Coordinators (Real Email + Roll Number):');
-    console.log('   • Chittuluri Meena:            meenachittuluri@gmail.com / 23JN1A45C0');
-    console.log('   • Gadam Sai Krupa Sanjeetha:   sanjusanjeetha18@gmail.com / 23B21A4304');
+    console.log('2. Coordinator:  coordinator@c4gt.com        / Coord@123');
+    console.log('                 coordinator1@c4gt.com       / Coord@123');
     console.log('');
     console.log('3. Students (Real Email + Roll Number):');
     console.log('   • Bhavani Sankar Davuluri:     bhavanisanakrdavuluri1094@gmail.com / 23B21A4268');
+    console.log('   • Chittuluri Meena:            meenachittuluri@gmail.com / 23JN1A45C0');
+    console.log('   • Gadam Sai Krupa Sanjeetha:   sanjusanjeetha18@gmail.com / 23B21A4304');
     console.log('   • Akhil Vanama:                akhilvanama19@gmail.com / 23B21A45B4');
-    console.log('   • ...(all 79 other students login with their Real Email + Roll Number)');
+    console.log('   • ...(all 81 students login with their Real Email + Roll Number)');
     console.log('=============================================');
     console.log('\n📝 TEAM SUMMARY:');
     const teams = [...new Set(C4GT_MEMBERS.map(m => m.team))];

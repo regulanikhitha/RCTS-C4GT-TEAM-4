@@ -32,8 +32,8 @@ const markAttendance = async (req, res, next) => {
     if (formattedDate > todayStr) {
       return res.status(400).json({ message: 'Cannot mark attendance for future dates.' });
     }
-    if (formattedDate < todayStr) {
-      return res.status(400).json({ message: 'Attendance for past dates cannot be modified (View Only).' });
+    if (formattedDate < todayStr && req.user?.role !== 'admin') {
+      return res.status(400).json({ message: 'Attendance for past dates cannot be modified (View Only). Only admins can edit past attendance.' });
     }
 
     // Verify member exists and is active
@@ -101,8 +101,8 @@ const markBulkAttendance = async (req, res, next) => {
     if (formattedDate > todayStr) {
       return res.status(400).json({ message: 'Cannot mark attendance for future dates.' });
     }
-    if (formattedDate < todayStr) {
-      return res.status(400).json({ message: 'Attendance for past dates cannot be modified (View Only).' });
+    if (formattedDate < todayStr && req.user?.role !== 'admin') {
+      return res.status(400).json({ message: 'Attendance for past dates cannot be modified (View Only). Only admins can edit past attendance.' });
     }
 
     const markedBy = req.user ? req.user.email : 'System';
@@ -203,8 +203,8 @@ const updateAttendance = async (req, res, next) => {
     if (attendance.date > todayStr) {
       return res.status(400).json({ message: 'Cannot modify attendance for future dates.' });
     }
-    if (attendance.date < todayStr) {
-      return res.status(400).json({ message: 'Attendance for past dates cannot be modified (View Only).' });
+    if (attendance.date < todayStr && req.user?.role !== 'admin') {
+      return res.status(400).json({ message: 'Attendance for past dates cannot be modified (View Only). Only admins can edit past attendance.' });
     }
 
     const oldStatus = attendance.status;

@@ -7,9 +7,9 @@ export default function Landing() {
   const [showLoginPopup, setShowLoginPopup] = useState(false);
 
   const loginOptions = [
-    { role: 'admin', label: 'Admin Login', route: '/admin-dashboard', name: 'Admin User' },
-    { role: 'coordinator', label: 'Coordinator Login', route: '/coordinator-dashboard', name: 'Coordinator User' },
-    { role: 'student', label: 'Student Login', route: '/student-dashboard', name: 'Student User' },
+    { role: 'admin', label: 'Admin Login', route: '/admin-dashboard', name: 'Admin' },
+    { role: 'coordinator', label: 'Coordinator Login', route: '/coordinator-dashboard', name: 'Coordinator' },
+    { role: 'student', label: 'Student Login', route: '/student-dashboard', name: 'Student' },
   ];
 
   const loginAsRole = (role, route, name) => {

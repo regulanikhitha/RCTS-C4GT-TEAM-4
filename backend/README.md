@@ -33,7 +33,7 @@ NODE_ENV=development
 ```
 
 ### 2. Seed 81 Members & Initial Accounts
-Populate the database with the **System Admin**, **2 Authorized Coordinators**, all **81 C4GT Members**, and today's initial attendance & audit logs:
+Populate the database with the **Admin**, **2 Authorized Coordinators**, all **81 C4GT Members**, and today's initial attendance & audit logs:
 ```bash
 npm run seed
 ```
@@ -51,10 +51,9 @@ npm run dev
 
 | Role | Email | Password | Allowed Capabilities |
 | :--- | :--- | :--- | :--- |
-| **System Admin** | `admin@c4gt.com` | `Admin@123` | Full member & coordinator management, all attendance, system audit logs |
-| **Coordinator 1** | `coordinator1@c4gt.com` | `Coord@123` | Whitelisted login, view 81 members, mark single/bulk attendance, update, download PDF |
-| **Coordinator 2** | `coordinator2@c4gt.com` | `Coord@123` | Whitelisted coordinator login |
-| **Students (81)** | `member001@c4gt.com` to `member081@c4gt.com` | `Student@123` | View personal attendance history & stats only (strict read-only) |
+| **Admin** | `admin@c4gt.com` | `Admin@123` | Full member & coordinator management, all attendance, system audit logs |
+| **Coordinator** | `coordinator@c4gt.com` | `Coord@123` | Whitelisted login, view 81 members, mark single/bulk attendance, update, download PDF |
+| **Students (81)** | Real Member Email (e.g. `meenachittuluri@gmail.com`) | Student Roll No (e.g. `23JN1A45C0`) | View personal attendance history & stats only (strict read-only) |
 
 ---
 
