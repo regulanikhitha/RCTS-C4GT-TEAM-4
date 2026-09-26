@@ -870,28 +870,40 @@ export default function PermissionModal({ onClose, onSuccess }) {
               5. Declaration
             </div>
 
-            <Label
-              className="radio-option"
+            <div
+              className="permission-declaration-box"
               style={{
+                display: 'flex',
                 alignItems: 'flex-start',
-                gap: 10,
+                gap: 12,
+                cursor: 'pointer',
+                padding: '12px 14px',
+                borderRadius: 10,
+                border: form.declaration ? '2px solid #0f766e' : '2px solid #cbd5e1',
+                background: form.declaration ? '#f0fdfa' : '#ffffff',
+                transition: 'all 0.15s ease',
               }}
+              onClick={() => set('declaration', !form.declaration)}
             >
-
-              <Checkbox checked={form.declaration} onCheckedChange={(checked) => set('declaration', checked === true)} style={{ marginTop: 2 }} />
+              <Checkbox
+                checked={form.declaration}
+                onCheckedChange={(checked) => set('declaration', checked === true)}
+                style={{ marginTop: 2, flexShrink: 0 }}
+                onClick={(e) => e.stopPropagation()}
+              />
 
               <span
                 style={{
                   fontSize: 13,
-                  color: 'var(--text-secondary)',
+                  color: form.declaration ? '#0f172a' : 'var(--text-secondary)',
+                  fontWeight: form.declaration ? 600 : 400,
+                  lineHeight: 1.5,
+                  userSelect: 'none',
                 }}
               >
-                I confirm that the information provided
-                above is correct and the permission request
-                is genuine.
+                I confirm that the information provided above is correct and the permission request is genuine.
               </span>
-
-            </Label>
+            </div>
 
           </div>
 

@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useEffect } from 'react';
+import React, { useMemo, useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import TopBar from '../components/TopBar';
 import { Badge } from '../components/ui/badge';
@@ -11,6 +11,7 @@ import { useAuth } from '../context/AuthContext';
 export default function StudentDashboard() {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const scrollRef = useRef(null);
 
   // Popup Notification State
   const [latestNotification, setLatestNotification] = useState(null);
@@ -62,10 +63,18 @@ export default function StudentDashboard() {
         : new Date(today.getFullYear(), today.getMonth(), index + 1);
       const dateKey = date.toISOString().slice(0, 10);
       const status = recordsByDate[dateKey];
+      const dayNum = date.getDate();
+      const monthShort = date.toLocaleDateString('en-US', { month: 'short' });
+      const weekdayShort = date.toLocaleDateString('en-US', { weekday: 'short' });
+
       return {
         name: attendancePeriod === 'weekly'
-          ? date.toLocaleDateString('en-US', { weekday: 'short' })
-          : `${index + 1} ${date.toLocaleDateString('en-US', { weekday: 'short' })}`,
+          ? `${dayNum} ${weekdayShort}`
+          : `${dayNum} ${monthShort}`,
+        dayNum,
+        monthName: monthShort,
+        weekday: weekdayShort,
+        fullDate: date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' }),
         status,
         value: status ? 1 : 0,
         present: status === 'Present' ? 1 : 0,
@@ -73,6 +82,24 @@ export default function StudentDashboard() {
       };
     });
   }, [attendance.records, attendancePeriod]);
+
+  // Auto-scroll the monthly chart to center around today's date on small screens
+  useEffect(() => {
+    if (attendancePeriod === 'monthly' && scrollRef.current) {
+      const todayDate = new Date().getDate();
+      const totalDays = trendData.length || 31;
+      const containerWidth = scrollRef.current.clientWidth;
+      const contentWidth = 840;
+
+      if (contentWidth > containerWidth) {
+        const targetScroll = ((todayDate - 1) / totalDays) * contentWidth - containerWidth / 2 + 30;
+        scrollRef.current.scrollTo({
+          left: Math.max(0, targetScroll),
+          behavior: 'smooth',
+        });
+      }
+    }
+  }, [attendancePeriod, trendData.length]);
 
   const percentageData = [
     { name: 'Present', value: presentCount, color: '#0f766e' },
@@ -198,9 +225,27 @@ export default function StudentDashboard() {
                 <button className={attendancePeriod === 'monthly' ? 'active' : ''} onClick={() => setAttendancePeriod('monthly')}>Monthly</button>
               </div>
             </div>
-            <ChartContainer height={290} className="student-trend-chart">
-              <AttendanceTrendChart data={trendData} />
-            </ChartContainer>
+
+            {/* Mobile swipe hint banner for monthly view */}
+            {attendancePeriod === 'monthly' && (
+              <div className="student-chart-mobile-hint">
+                <span>👉 Swipe horizontally to view all {trendData.length} days of {new Date().toLocaleDateString('en-US', { month: 'long' })}</span>
+              </div>
+            )}
+
+            <div className="student-trend-scroll-container" ref={scrollRef}>
+              <div
+                style={{
+                  minWidth: attendancePeriod === 'monthly' ? '840px' : '100%',
+                  width: '100%',
+                  height: 290,
+                }}
+              >
+                <ChartContainer height={290} className="student-trend-chart">
+                  <AttendanceTrendChart data={trendData} period={attendancePeriod} />
+                </ChartContainer>
+              </div>
+            </div>
           </div>
 
           {/* Bottom Section: Pie Chart on the Left + Summary Stats on the Right */}

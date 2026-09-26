@@ -6,9 +6,19 @@ import { Badge } from '../components/ui/badge';
 import { Label } from '../components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
 
+const getTodayString = () => {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, '0');
+  const day = String(now.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
+
 export default function CoordinatorDashboard() {
   const [members, setMembers] = useState([]);
   const [teamFilter, setTeamFilter] = useState('');
+  const [stats, setStats] = useState(null);
+  const [statsLoading, setStatsLoading] = useState(true);
 
   useEffect(() => {
     const fetchMembers = async () => {
@@ -22,6 +32,28 @@ export default function CoordinatorDashboard() {
 
     fetchMembers();
   }, []);
+
+  useEffect(() => {
+    let isMounted = true;
+    const fetchTodayStats = async () => {
+      setStatsLoading(true);
+      try {
+        const todayDate = getTodayString();
+        const teamParam = teamFilter ? `&team=${encodeURIComponent(teamFilter)}` : '';
+        const { data } = await api.get(`/attendance/stats?date=${todayDate}${teamParam}`);
+        if (isMounted) setStats(data);
+      } catch (_) {
+        if (isMounted) setStats(null);
+      } finally {
+        if (isMounted) setStatsLoading(false);
+      }
+    };
+
+    fetchTodayStats();
+    return () => {
+      isMounted = false;
+    };
+  }, [teamFilter]);
 
   // Get unique teams
   const teams = [
@@ -42,6 +74,15 @@ export default function CoordinatorDashboard() {
       )
     : members;
 
+  const totalCount = stats?.totalMembers ?? teamMembers.length;
+  const presentCount = stats?.present ?? 0;
+  const absentCount = stats?.absent ?? (totalCount > presentCount ? totalCount - presentCount : 0);
+  const todayPercentage = stats?.attendancePercentage !== undefined
+    ? Number(stats.attendancePercentage).toFixed(1).replace(/\.0$/, '')
+    : totalCount > 0
+      ? Math.round((presentCount / totalCount) * 100)
+      : 0;
+
   return (
     <>
       <TopBar title="Coordinator Dashboard" />
@@ -51,7 +92,7 @@ export default function CoordinatorDashboard() {
         <div className="page-header">
           <h1>Coordinator Dashboard</h1>
           <p>
-            Manage team attendance, attendance rate, and operational updates.
+            Manage team attendance, today's attendance rate, and operational updates.
           </p>
         </div>
 
@@ -91,31 +132,31 @@ export default function CoordinatorDashboard() {
           </div>
         </div>
 
-        {/* EXISTING STAT CARDS */}
+        {/* STAT CARDS */}
         <div className="stat-grid">
 
           <div className="stat-card blue">
             <div className="stat-label">Teams</div>
-            <div className="stat-value">9</div>
+            <div className="stat-value">{teams.length || 9}</div>
             <div className="stat-sub">Active teams</div>
           </div>
 
           <div className="stat-card green">
             <div className="stat-label">Present</div>
-            <div className="stat-value">76</div>
-            <div className="stat-sub">Members present</div>
+            <div className="stat-value">{statsLoading ? '...' : presentCount}</div>
+            <div className="stat-sub">Marked today</div>
           </div>
 
           <div className="stat-card red">
-            <div className="stat-label">Pending</div>
-            <div className="stat-value">12</div>
-            <div className="stat-sub">Action required</div>
+            <div className="stat-label">Absent / Pending</div>
+            <div className="stat-value">{statsLoading ? '...' : absentCount}</div>
+            <div className="stat-sub">Not marked present</div>
           </div>
 
           <div className="stat-card purple">
-            <div className="stat-label">Attendance</div>
-            <div className="stat-value">86%</div>
-            <div className="stat-sub">This week</div>
+            <div className="stat-label">Today's Attendance</div>
+            <div className="stat-value">{statsLoading ? '...' : `${todayPercentage}%`}</div>
+            <div className="stat-sub">Today's percentage</div>
           </div>
 
         </div>

@@ -1,124 +1,17 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '../components/ui/button';
 
 export default function Landing() {
   const navigate = useNavigate();
-  const [showLoginPopup, setShowLoginPopup] = useState(false);
-
-  const loginOptions = [
-    { role: 'admin', label: 'Admin Login', route: '/admin-dashboard', name: 'Admin' },
-    { role: 'coordinator', label: 'Coordinator Login', route: '/coordinator-dashboard', name: 'Coordinator' },
-    { role: 'student', label: 'Student Login', route: '/student-dashboard', name: 'Student' },
-  ];
-
-  const loginAsRole = (role, route, name) => {
-    localStorage.setItem('c4gt_login_role', role);
-    setShowLoginPopup(false);
-    navigate('/login', { state: { selectedRole: role, roleLabel: labelFromRole(role) } });
-  };
-
-  const labelFromRole = (role) => {
-    if (role === 'admin') return 'Admin';
-    if (role === 'coordinator') return 'Coordinator';
-    return 'Student';
-  };
 
   const handleLogin = () => {
-    setShowLoginPopup(true);
+    navigate('/login');
   };
 
   return (
     <div className="lp-page">
       <div className="lp-toast" id="lpToast" />
-
-      {showLoginPopup && (
-        <div
-          style={{
-            position: 'fixed',
-            inset: 0,
-            background: 'rgba(15, 23, 42, 0.45)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            zIndex: 1000,
-            padding: '1rem',
-          }}
-          onClick={() => setShowLoginPopup(false)}
-        >
-          <div
-            role="dialog"
-            aria-modal="true"
-            onClick={(e) => e.stopPropagation()}
-            style={{
-              width: '100%',
-              maxWidth: 440,
-              background: '#ffffff',
-              borderRadius: 18,
-              boxShadow: '0 20px 50px rgba(15, 23, 42, 0.2)',
-              border: '1px solid #e2e8f0',
-              padding: '1.5rem',
-            }}
-          >
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 18 }}>
-              <div>
-                <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#6366f1' }}>
-                  Choose role
-                </div>
-                <h3 style={{ marginTop: 6, fontSize: 26, fontWeight: 800, color: '#0f172a' }}>Login as</h3>
-              </div>
-              <Button
-                variant="ghost"
-                type="button"
-                onClick={() => setShowLoginPopup(false)}
-                style={{
-                  border: '1px solid #e2e8f0',
-                  background: '#fff',
-                  borderRadius: 10,
-                  width: 36,
-                  height: 36,
-                  fontSize: 20,
-                  color: '#475569',
-                  cursor: 'pointer',
-                  lineHeight: 1,
-                }}
-                aria-label="Close login popup"
-                title="Close"
-              >
-                ×
-              </Button>
-            </div>
-
-            <div style={{ display: 'grid', gap: 12 }}>
-              {loginOptions.map(({ role, label, route, name }) => (
-                <Button
-                  variant="outline"
-                  key={role}
-                  type="button"
-                  onClick={() => loginAsRole(role, route, name)}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    width: '100%',
-                    padding: '0.9rem 1rem',
-                    borderRadius: 12,
-                    border: '1px solid #e2e8f0',
-                    background: '#f8fafc',
-                    color: '#0f172a',
-                    fontSize: 15,
-                    fontWeight: 700,
-                    cursor: 'pointer',
-                  }}
-                >
-                  <span>{label}</span>
-                  <span style={{ color: '#4338ca', fontSize: 18 }}>→</span>
-                </Button>
-              ))}
-            </div>
-          </div>
-        </div>
-      )}
 
       <header className="lp-nav">
         <div className="lp-brand">

@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { Eye, EyeOff, Lock, Mail } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
-import toast, { Toaster } from 'react-hot-toast';
+import toast from 'react-hot-toast';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
@@ -15,10 +15,12 @@ const roleLabelMap = {
 };
 
 export default function Login() {
-  const { login, loading } = useAuth();
+  const { login, loading, clearSession } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-  const selectedRole = location.state?.selectedRole || localStorage.getItem('c4gt_login_role') || null;
+  const [selectedRole, setSelectedRole] = useState(
+    () => location.state?.selectedRole || localStorage.getItem('c4gt_login_role') || 'student'
+  );
   const [form, setForm] = useState({ email: '', password: '' });
   const [showPass, setShowPass] = useState(false);
   const [error, setError] = useState('');
@@ -26,13 +28,6 @@ export default function Login() {
   const handleCancel = () => {
     localStorage.removeItem('c4gt_login_role');
     navigate('/');
-  };
-
-  const isRoleAllowed = (userRole, portalRole) => {
-    if (!portalRole) return true;
-    if (userRole === portalRole) return true;
-    if (userRole === 'admin') return true;
-    return false;
   };
 
   const handleSubmit = async (e) => {
@@ -46,12 +41,14 @@ export default function Login() {
       return;
     }
 
-    const userRole = result.user?.role || form.email.split('@')[0];
+    const userRole = result.user?.role;
 
-    if (selectedRole && !isRoleAllowed(userRole, selectedRole)) {
-      setError(`This login page is only for ${roleLabelMap[selectedRole] || 'the selected'} users. Please use the correct account.`);
-      localStorage.removeItem('c4gt_token');
-      localStorage.removeItem('c4gt_user');
+    // Strict role check: user role MUST match the selected login tab!
+    if (selectedRole && userRole !== selectedRole) {
+      const activeTabName = roleLabelMap[selectedRole] || selectedRole;
+      const actualRoleName = roleLabelMap[userRole] || userRole;
+      setError(`Login restricted: This tab is strictly for ${activeTabName} login. You entered credentials for an ${actualRoleName} account. Please click the "${actualRoleName}" tab above to sign in.`);
+      clearSession();
       return;
     }
 
@@ -59,29 +56,76 @@ export default function Login() {
       ? (selectedRole === 'student' ? '/student-dashboard' : selectedRole === 'coordinator' ? '/coordinator-dashboard' : '/admin-dashboard')
       : (result.redirect || (userRole === 'student' ? '/student-dashboard' : userRole === 'coordinator' ? '/coordinator-dashboard' : '/admin-dashboard'));
 
-    toast.success('Welcome back!', { duration: 3000 });
+    const userName = result.user?.name ? `, ${result.user.name}` : '';
+    toast.success(`Welcome back${userName}!`, {
+      id: 'welcome-back-toast',
+      duration: 5000,
+    });
+    // Guaranteed 5-second dismissal failsafe
+    setTimeout(() => {
+      toast.dismiss('welcome-back-toast');
+    }, 5000);
+
     localStorage.removeItem('c4gt_login_role');
     navigate(redirectPath);
   };
 
   return (
     <div className="login-page">
-      <Toaster position="top-right" toastOptions={{ duration: 3000 }} />
       {/* Decorative circles */}
       <div className="login-bg-circle" style={{ width: 400, height: 400, top: -100, right: -100 }} />
       <div className="login-bg-circle" style={{ width: 300, height: 300, bottom: -80, left: -80 }} />
       <div className="login-bg-circle" style={{ width: 180, height: 180, top: '40%', left: '8%' }} />
 
       <div className="login-card">
+        {/* Role Switcher Tabs */}
+        <div
+          className="login-role-tabs"
+          style={{
+            display: 'flex',
+            gap: 6,
+            marginBottom: 20,
+            background: '#f1f5f9',
+            padding: 4,
+            borderRadius: 12,
+            border: '1px solid #e2e8f0',
+          }}
+        >
+          {['student', 'coordinator', 'admin'].map((r) => (
+            <button
+              key={r}
+              type="button"
+              onClick={() => {
+                setSelectedRole(r);
+                localStorage.setItem('c4gt_login_role', r);
+                setError('');
+              }}
+              style={{
+                flex: 1,
+                padding: '8px 10px',
+                border: 'none',
+                borderRadius: 8,
+                fontSize: 12.5,
+                fontWeight: selectedRole === r ? 700 : 500,
+                cursor: 'pointer',
+                background: selectedRole === r ? '#0f766e' : 'transparent',
+                color: selectedRole === r ? '#ffffff' : '#64748b',
+                boxShadow: selectedRole === r ? '0 2px 4px rgba(15, 118, 110, 0.2)' : 'none',
+                transition: 'all 0.15s ease',
+              }}
+            >
+              {roleLabelMap[r]}
+            </button>
+          ))}
+        </div>
+
         <div className="login-logo">
           <div className="login-logo-badge">
             <img src="/logo.svg" width="56" height="56" alt="C4GT HUB logo" />
           </div>
-          <h1 className="login-heading">{selectedRole ? `${roleLabelMap[selectedRole] || 'Role'} Login` : 'Welcome Back'}</h1>
+          <h1 className="login-heading">{roleLabelMap[selectedRole] || 'Role'} Login</h1>
           <p className="login-sub">
-            {selectedRole
-              ? `Use the ${roleLabelMap[selectedRole] || 'selected'} account credentials to continue.`
-              : 'Sign in to your C4GT Hub account'}
+            Use your {roleLabelMap[selectedRole] || 'selected'} account credentials to continue.
           </p>
         </div>
 

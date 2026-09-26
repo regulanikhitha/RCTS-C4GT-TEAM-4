@@ -53,11 +53,9 @@ function AppLayout() {
           <Route
             path="/coordinator-dashboard"
             element={
-              user.role === 'student'
-                ? <Navigate to="/student-dashboard" replace />
-                : user.role === 'admin' || user.role === 'coordinator'
-                  ? <CoordinatorDashboard />
-                  : <Navigate to="/admin-dashboard" replace />
+              user.role === 'coordinator'
+                ? <CoordinatorDashboard />
+                : <Navigate to={defaultDashboardPath} replace />
             }
           />
           <Route
@@ -108,7 +106,7 @@ export default function App() {
             position="top-right"
             toastOptions={{
               style: { fontFamily: 'Inter, sans-serif', fontSize: 13, borderRadius: 8 },
-              duration: 3000,
+              duration: 5000,
             }}
           />
           <Routes>

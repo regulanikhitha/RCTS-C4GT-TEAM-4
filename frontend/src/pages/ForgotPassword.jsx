@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Mail, ArrowLeft, KeyRound, Lock } from 'lucide-react';
 import api from '../api/axios';
-import toast, { Toaster } from 'react-hot-toast';
+import toast from 'react-hot-toast';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
@@ -56,7 +56,6 @@ export default function ForgotPassword() {
 
   return (
     <div className="login-page">
-      <Toaster position="top-right" toastOptions={{ duration: 3000 }} />
       <div className="login-bg-circle" style={{ width: 400, height: 400, top: -100, right: -100 }} />
       <div className="login-bg-circle" style={{ width: 300, height: 300, bottom: -80, left: -80 }} />
 

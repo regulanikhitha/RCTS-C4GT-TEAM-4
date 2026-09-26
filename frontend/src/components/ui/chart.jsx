@@ -27,13 +27,26 @@ export function ChartContainer({ config = {}, children, className = '', height =
 function ChartTooltipContent({ active, payload, label }) {
   if (!active || !payload?.length) return null;
 
+  const item = payload[0]?.payload;
+  const displayLabel = item?.fullDate || label;
+  const status = item?.status;
+
   return (
     <div className="chart-tooltip-card">
-      <div className="chart-tooltip-label">{label}</div>
-      {payload[0]?.payload?.status ? (
+      <div className="chart-tooltip-label">{displayLabel}</div>
+      {status ? (
         <div className="chart-tooltip-row">
-          <span><i style={{ background: payload[0].payload.status === 'Present' ? PRESENT_COLOR : ABSENT_COLOR }} />Status</span>
-          <strong>{payload[0].payload.status}</strong>
+          <span>
+            <i style={{ background: status === 'Present' ? PRESENT_COLOR : ABSENT_COLOR }} />
+            Attendance
+          </span>
+          <strong style={{ color: status === 'Present' ? PRESENT_COLOR : ABSENT_COLOR }}>
+            {status}
+          </strong>
+        </div>
+      ) : payload[0]?.payload ? (
+        <div className="chart-tooltip-row">
+          <span style={{ color: '#94a3b8' }}>No session recorded</span>
         </div>
       ) : payload.map((entry) => (
         <div className="chart-tooltip-row" key={entry.dataKey || entry.name}>
@@ -101,14 +114,14 @@ function StraightXAxisTick({ x, y, payload }) {
   const val = String(payload.value);
   const parts = val.split(' ');
   if (parts.length > 1) {
-    const [dayNum, dayName] = parts;
+    const [dayNum, subLabel] = parts;
     return (
       <g transform={`translate(${x},${y})`}>
-        <text x={0} y={0} dy={12} textAnchor="middle" fill="#334155" fontSize={10} fontWeight={700}>
+        <text x={0} y={0} dy={12} textAnchor="middle" fill="#0f172a" fontSize={11} fontWeight={700}>
           {dayNum}
         </text>
-        <text x={0} y={0} dy={23} textAnchor="middle" fill="#64748b" fontSize={9} fontWeight={500}>
-          {dayName}
+        <text x={0} y={0} dy={25} textAnchor="middle" fill="#64748b" fontSize={9.5} fontWeight={600}>
+          {subLabel}
         </text>
       </g>
     );
@@ -121,7 +134,7 @@ function StraightXAxisTick({ x, y, payload }) {
   );
 }
 
-export function AttendanceTrendChart({ data }) {
+export function AttendanceTrendChart({ data, period = 'weekly' }) {
   return (
     <ResponsiveContainer width="100%" height="100%">
       <BarChart data={data} margin={{ top: 10, right: 10, left: -20, bottom: 12 }}>
@@ -132,7 +145,7 @@ export function AttendanceTrendChart({ data }) {
           interval={0}
           minTickGap={0}
           tick={<StraightXAxisTick />}
-          height={32}
+          height={40}
         />
         <YAxis
           axisLine={false}
@@ -143,9 +156,12 @@ export function AttendanceTrendChart({ data }) {
           tick={{ fill: '#64748b', fontSize: 11 }}
         />
         <Tooltip content={<ChartTooltipContent />} cursor={{ fill: 'rgba(15, 23, 42, 0.04)' }} />
-        <Bar dataKey="value" name="Attendance status" radius={[5, 5, 0, 0]} maxBarSize={28} {...animatedBarProps}>
-          {data.map((entry) => (
-            <Cell key={entry.name} fill={entry.status === 'Present' ? PRESENT_COLOR : ABSENT_COLOR} />
+        <Bar dataKey="value" name="Attendance status" radius={[5, 5, 0, 0]} maxBarSize={period === 'monthly' ? 24 : 32} {...animatedBarProps}>
+          {data.map((entry, idx) => (
+            <Cell
+              key={`cell-${entry.name || idx}`}
+              fill={entry.status === 'Present' ? PRESENT_COLOR : entry.status === 'Absent' ? ABSENT_COLOR : '#e2e8f0'}
+            />
           ))}
         </Bar>
       </BarChart>

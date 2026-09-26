@@ -80,15 +80,18 @@ export function AuthProvider({ children }) {
     }
   };
 
-  // Logout and move to landing page
-  const logout = () => {
+  const clearSession = () => {
     localStorage.removeItem('c4gt_token');
     localStorage.removeItem('c4gt_user');
     localStorage.removeItem('c4gt_admin_search');
 
     setUser(null);
     setAdminSearchState('');
+  };
 
+  // Logout and move to landing page
+  const logout = () => {
+    clearSession();
     window.location.href = '/';
   };
 
@@ -99,6 +102,7 @@ export function AuthProvider({ children }) {
         loading,
         login,
         logout,
+        clearSession,
         adminSearch,
         setAdminSearch,
       }}
