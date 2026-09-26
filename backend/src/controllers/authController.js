@@ -59,7 +59,7 @@ const login = async (req, res, next) => {
 
     // Find user
     const user = await User.findOne({ email: normalizedEmail });
-    if (user) {
+    if (!user) {
       return res.status(401).json({
         message: 'Invalid credentials. User not found.',
       });

@@ -21,7 +21,32 @@ const app = express();
 
 app.use(logger);
 
-app.use(cors());
+// CORS Configuration
+const allowedOrigins = process.env.CLIENT_URL || process.env.FRONTEND_URL || process.env.CORS_ORIGIN;
+
+const corsOptions = {
+  origin: (origin, callback) => {
+    // Allow non-browser requests (mobile, curl, server-to-server, Postman)
+    if (!origin) return callback(null, true);
+
+    if (allowedOrigins) {
+      const originsList = allowedOrigins
+        .split(',')
+        .map((o) => o.trim().replace(/\/+$/, ''));
+      if (originsList.includes('*') || originsList.includes(origin.replace(/\/+$/, ''))) {
+        return callback(null, true);
+      }
+    }
+    // Reflect origin to allow all web clients dynamically
+    return callback(null, true);
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin'],
+};
+
+app.use(cors(corsOptions));
+app.options('*', cors(corsOptions));
 
 app.use(express.json());
 
@@ -29,7 +54,23 @@ app.use(express.urlencoded({ extended: true }));
 
 // --------------- Routes ---------------
 
-// Health check
+// Root & Health check
+app.get('/', (req, res) => {
+  res.status(200).json({
+    status: 'ok',
+    message: 'C4GT Hub Attendance API is running',
+    timestamp: new Date().toISOString(),
+  });
+});
+
+app.get('/health', (req, res) => {
+  res.status(200).json({
+    status: 'ok',
+    message: 'C4GT Hub Attendance API is running',
+    timestamp: new Date().toISOString(),
+  });
+});
+
 app.get('/api/health', (req, res) => {
   res.status(200).json({
     status: 'ok',
