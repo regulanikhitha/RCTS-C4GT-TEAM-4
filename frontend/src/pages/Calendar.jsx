@@ -50,8 +50,10 @@ export default function CalendarPage() {
     let present = 0;
     let absent = 0;
 
+    const todayKey = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
     for (let day = 1; day <= daysInMonth; day++) {
       const dateKey = `${current.year}-${String(current.month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+      if (dateKey > todayKey) continue;
       const status = attendanceByDate[dateKey];
       if (status === 'Present') present++;
       else if (status === 'Absent') absent++;
@@ -92,7 +94,9 @@ export default function CalendarPage() {
                   const dateKey = day
                     ? `${current.year}-${String(current.month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`
                     : null;
-                  const attendanceStatus = dateKey ? attendanceByDate[dateKey] : null;
+                  const todayKey = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+                  const isFuture = dateKey ? dateKey > todayKey : false;
+                  const attendanceStatus = (dateKey && !isFuture) ? attendanceByDate[dateKey] : null;
                   const attendanceColor = attendanceStatus === 'Present'
                     ? '#16a34a'
                     : attendanceStatus === 'Absent'
@@ -145,17 +149,18 @@ export default function CalendarPage() {
                     <ResponsiveContainer width="100%" height="100%">
                       <PieChart>
                         <Pie
-                          data={selectedMonthStats.pieData}
+                          data={selectedMonthStats.pieData.filter((d) => d.value > 0)}
                           dataKey="value"
                           nameKey="name"
                           innerRadius="65%"
                           outerRadius="88%"
-                          paddingAngle={4}
+                          paddingAngle={selectedMonthStats.present > 0 && selectedMonthStats.absent > 0 ? 4 : 0}
                           stroke="none"
                           isAnimationActive
                         >
-                          <Cell fill="#16a34a" />
-                          <Cell fill="#dc2626" />
+                          {selectedMonthStats.pieData.filter((d) => d.value > 0).map((entry) => (
+                            <Cell key={entry.name} fill={entry.color} />
+                          ))}
                         </Pie>
                         <Tooltip
                           formatter={(value, name) => [`${value} Day${value !== 1 ? 's' : ''}`, name]}

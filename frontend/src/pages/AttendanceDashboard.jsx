@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import {
   CheckCircle2,
   XCircle,
@@ -79,8 +79,10 @@ export default function AttendanceDashboard() {
   const [loading, setLoading] = useState(false);
   const [updating, setUpdating] = useState(null);
 
-  const fetchAttendance = useCallback(async () => {
-    setLoading(true);
+  const fetchAttendance = useCallback(async (silent = false) => {
+    if (!silent) {
+      setLoading(true);
+    }
 
     try {
       const role = ROLE_MAP[activeTab];
@@ -160,14 +162,18 @@ export default function AttendanceDashboard() {
     } catch (err) {
       console.error('Attendance fetch error:', err);
 
-      setMembers([]);
-      setStats(null);
+      if (!silent) {
+        setMembers([]);
+        setStats(null);
+      }
 
       if (err.response?.status === 401) {
         toast.error('Session expired. Please login again.');
       }
     } finally {
-      setLoading(false);
+      if (!silent) {
+        setLoading(false);
+      }
     }
   }, [selectedDate, selectedTeam, activeTab, adminSearch, isAdmin]);
 
@@ -175,57 +181,97 @@ export default function AttendanceDashboard() {
     fetchAttendance();
   }, [fetchAttendance]);
 
-  // Update individual attendance
+  // Update individual attendance smoothly & optimistically
   const updateStatus = async (member, newStatus) => {
     if (!canMarkAttendance) {
       toast.error(isPastDate ? 'Past attendance is View-Only and cannot be modified' : 'Cannot mark attendance for future dates');
       return;
     }
-    if (!member.attendanceId) {
-      try {
-        setUpdating(member.memberId);
 
-        await api.post('/attendance', {
+    if (member.status === newStatus) {
+      return; // Already marked with this status
+    }
+
+    // Save previous state for rollback in case of network failure
+    const previousMembers = [...members];
+    const previousStats = stats ? { ...stats } : null;
+    const nowIso = new Date().toISOString();
+
+    // 1. Instantly update member state in UI (0ms lag, no page reload)
+    setMembers((prev) =>
+      prev.map((m) =>
+        m.memberId === member.memberId
+          ? {
+              ...m,
+              status: newStatus,
+              markedTime: nowIso,
+              markedBy: user?.email || 'Coordinator',
+            }
+          : m
+      )
+    );
+
+    // 2. Instantly update summary statistics
+    setStats((prev) => {
+      if (!prev) return prev;
+      const updatedMembers = members.map((m) =>
+        m.memberId === member.memberId ? { ...m, status: newStatus } : m
+      );
+      const presentCount = updatedMembers.filter((m) => m.status === 'Present').length;
+      const absentCount = updatedMembers.filter((m) => m.status === 'Absent').length;
+      const total = updatedMembers.length;
+      return {
+        ...prev,
+        present: presentCount,
+        absent: absentCount,
+        attendancePercentage: total > 0 ? Math.round((presentCount / total) * 100) : 0,
+      };
+    });
+
+    const targetId = member.attendanceId || member.memberId;
+    setUpdating(targetId);
+
+    try {
+      let createdAttendanceId = null;
+
+      if (!member.attendanceId) {
+        const res = await api.post('/attendance', {
           memberId: member.memberId,
           date: selectedDate,
           status: newStatus,
         });
-
-        toast.success(`Marked ${newStatus}`);
-
-        fetchAttendance();
-      } catch (err) {
-        toast.error(
-          err.response?.data?.message || 'Failed'
-        );
-      } finally {
-        setUpdating(null);
+        createdAttendanceId = res.data?.attendance?._id || res.data?._id;
+      } else {
+        await api.put(`/attendance/${member.attendanceId}`, {
+          status: newStatus,
+        });
       }
-    } else {
-      try {
-        setUpdating(member.attendanceId);
 
-        await api.put(
-          `/attendance/${member.attendanceId}`,
-          {
-            status: newStatus,
-          }
+      if (createdAttendanceId) {
+        setMembers((prev) =>
+          prev.map((m) =>
+            m.memberId === member.memberId
+              ? { ...m, attendanceId: createdAttendanceId }
+              : m
+          )
         );
-
-        toast.success(`Updated to ${newStatus}`);
-
-        fetchAttendance();
-      } catch (err) {
-        toast.error(
-          err.response?.data?.message || 'Failed'
-        );
-      } finally {
-        setUpdating(null);
       }
+
+      toast.success(`Marked as ${newStatus}`, { id: 'status-toast', duration: 1600 });
+
+      // Silently sync in background without showing full-page loader
+      fetchAttendance(true);
+    } catch (err) {
+      // Rollback to previous state on failure
+      setMembers(previousMembers);
+      setStats(previousStats);
+      toast.error(err.response?.data?.message || 'Failed to update attendance');
+    } finally {
+      setUpdating(null);
     }
   };
 
-  // Mark all members
+  // Mark all members smoothly and optimistically
   const markAll = async (status) => {
     if (!canMarkAttendance) {
       toast.error(isPastDate ? 'Past attendance is View-Only and cannot be modified' : 'Cannot mark attendance for future dates');
@@ -235,6 +281,32 @@ export default function AttendanceDashboard() {
       toast.error('No members found');
       return;
     }
+
+    const previousMembers = [...members];
+    const previousStats = stats ? { ...stats } : null;
+    const nowIso = new Date().toISOString();
+
+    // 1. Instantly update all members locally
+    setMembers((prev) =>
+      prev.map((m) => ({
+        ...m,
+        status,
+        markedTime: nowIso,
+        markedBy: user?.email || 'Coordinator',
+      }))
+    );
+
+    // 2. Instantly update stats
+    setStats((prev) => {
+      if (!prev) return prev;
+      const count = members.length;
+      return {
+        ...prev,
+        present: status === 'Present' ? count : 0,
+        absent: status === 'Absent' ? count : 0,
+        attendancePercentage: status === 'Present' ? 100 : 0,
+      };
+    });
 
     try {
       const records = members.map((m) => ({
@@ -247,13 +319,14 @@ export default function AttendanceDashboard() {
         records,
       });
 
-      toast.success(`Marked all as ${status}`);
+      toast.success(`Marked all as ${status}`, { id: 'bulk-toast', duration: 2000 });
 
-      fetchAttendance();
+      // Silently sync in background
+      fetchAttendance(true);
     } catch (err) {
-      toast.error(
-        err.response?.data?.message || 'Bulk mark failed'
-      );
+      setMembers(previousMembers);
+      setStats(previousStats);
+      toast.error(err.response?.data?.message || 'Bulk mark failed');
     }
   };
 
@@ -302,31 +375,46 @@ export default function AttendanceDashboard() {
   };
 
   // Chart data
-  const chartData = stats
-    ? [
+  const chartData = useMemo(() => {
+    if (members && members.length > 0) {
+      const isRole = (m, regex) => regex.test(m.role || '') || regex.test(m.department || '');
+
+      const juniorPresent = members.filter((m) => isRole(m, /junior/i) && m.status === 'Present').length;
+      const juniorAbsent = members.filter((m) => isRole(m, /junior/i) && m.status === 'Absent').length;
+
+      const seniorPresent = members.filter((m) => isRole(m, /senior/i) && m.status === 'Present').length;
+      const seniorAbsent = members.filter((m) => isRole(m, /senior/i) && m.status === 'Absent').length;
+
+      const leadPresent = members.filter((m) => isRole(m, /lead/i) && m.status === 'Present').length;
+      const leadAbsent = members.filter((m) => isRole(m, /lead/i) && m.status === 'Absent').length;
+
+      return [
+        { name: 'Junior Devs', present: juniorPresent, absent: juniorAbsent },
+        { name: 'Senior Devs', present: seniorPresent, absent: seniorAbsent },
+        { name: 'Leads', present: leadPresent, absent: leadAbsent },
+      ];
+    }
+
+    if (!stats) return [];
+
+    return [
       {
         name: 'Junior Devs',
-        present:
-          stats.roleStats?.juniorDevelopers?.present ?? 0,
-        absent:
-          stats.roleStats?.juniorDevelopers?.absent ?? 0,
+        present: stats.roleStats?.juniorDevelopers?.present ?? 0,
+        absent: stats.roleStats?.juniorDevelopers?.absent ?? 0,
       },
       {
         name: 'Senior Devs',
-        present:
-          stats.roleStats?.seniorDevelopers?.present ?? 0,
-        absent:
-          stats.roleStats?.seniorDevelopers?.absent ?? 0,
+        present: stats.roleStats?.seniorDevelopers?.present ?? 0,
+        absent: stats.roleStats?.seniorDevelopers?.absent ?? 0,
       },
       {
         name: 'Leads',
-        present:
-          stats.roleStats?.leads?.present ?? 0,
-        absent:
-          stats.roleStats?.leads?.absent ?? 0,
+        present: stats.roleStats?.leads?.present ?? 0,
+        absent: stats.roleStats?.leads?.absent ?? 0,
       },
-    ]
-    : [];
+    ];
+  }, [members, stats]);
 
   return (
     <>

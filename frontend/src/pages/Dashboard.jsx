@@ -19,7 +19,15 @@ import { Button } from '../components/ui/button';
 import { Label } from '../components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
 
-const TODAY = new Date().toISOString().split('T')[0];
+function getTodayString() {
+  const d = new Date();
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
+const TODAY = getTodayString();
 
 const TEAMS = [
   'ALL',

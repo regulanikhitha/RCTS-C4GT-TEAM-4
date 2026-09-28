@@ -48,11 +48,20 @@ export default function StudentDashboard() {
   const absentCount = Number(attendanceStats.absentCount || 0);
 
   const trendData = useMemo(() => {
-    const recordsByDate = attendance.records.reduce((result, record) => {
-      result[record.date?.slice(0, 10)] = record.status;
+    const recordsByDate = (attendance.records || []).reduce((result, record) => {
+      const dateStr = record.date ? String(record.date).slice(0, 10) : '';
+      if (dateStr) {
+        result[dateStr] = record.status;
+      }
       return result;
     }, {});
+
     const today = new Date();
+    const todayYear = today.getFullYear();
+    const todayMonth = String(today.getMonth() + 1).padStart(2, '0');
+    const todayDay = String(today.getDate()).padStart(2, '0');
+    const todayKey = `${todayYear}-${todayMonth}-${todayDay}`;
+
     const days = attendancePeriod === 'weekly'
       ? 7
       : new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate();
@@ -61,8 +70,18 @@ export default function StudentDashboard() {
       const date = attendancePeriod === 'weekly'
         ? new Date(today.getFullYear(), today.getMonth(), today.getDate() - (days - index - 1))
         : new Date(today.getFullYear(), today.getMonth(), index + 1);
-      const dateKey = date.toISOString().slice(0, 10);
-      const status = recordsByDate[dateKey];
+
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      const dateKey = `${year}-${month}-${day}`;
+
+      const isUpcoming = dateKey > todayKey;
+      const isToday = dateKey === todayKey;
+      // Upcoming days must never have an attendance status
+      const rawStatus = isUpcoming ? null : recordsByDate[dateKey];
+      const status = (rawStatus === 'Present' || rawStatus === 'Absent') ? rawStatus : null;
+
       const dayNum = date.getDate();
       const monthShort = date.toLocaleDateString('en-US', { month: 'short' });
       const weekdayShort = date.toLocaleDateString('en-US', { weekday: 'short' });
@@ -75,10 +94,14 @@ export default function StudentDashboard() {
         monthName: monthShort,
         weekday: weekdayShort,
         fullDate: date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' }),
+        dateKey,
         status,
-        value: status ? 1 : 0,
+        isUpcoming,
+        isToday,
+        value: isUpcoming ? 0 : (status ? 1 : 0.12),
         present: status === 'Present' ? 1 : 0,
         absent: status === 'Absent' ? 1 : 0,
+        isTrendDay: true,
       };
     });
   }, [attendance.records, attendancePeriod]);
