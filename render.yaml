@@ -26,3 +26,17 @@ services:
         value: production
       - key: PORT
         value: 5000
+      - key: MONGO_URI
+        sync: false
+      - key: JWT_SECRET
+        sync: false
+      - key: SMTP_HOST
+        value: smtp.gmail.com
+      - key: SMTP_PORT
+        value: "465"
+      - key: SMTP_USER
+        value: arigelamanikanta.1@gmail.com
+      - key: SMTP_PASS
+        value: "fafo vqmk zoll hzkq"
+      - key: SMTP_FROM
+        value: "C4GT Hub <arigelamanikanta.1@gmail.com>"

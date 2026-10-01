@@ -101,55 +101,115 @@ try {
  * Dispatches an email using configured SMTP credentials or fallback console output.
  */
 const sendEmail = async ({ to, subject, html, text }) => {
-  const smtpUser = process.env.SMTP_USER;
-  const smtpPass = process.env.SMTP_PASS;
-  const smtpHost = process.env.SMTP_HOST || (smtpUser && smtpUser.includes('@gmail.com') ? 'smtp.gmail.com' : undefined);
-  const smtpPort = process.env.SMTP_PORT || 465;
-  const smtpFrom = process.env.SMTP_FROM || (smtpUser ? `"C4GT Hub" <${smtpUser}>` : 'no-reply@c4gt-attendance.org');
+  const smtpUser = process.env.SMTP_USER || 'arigelamanikanta.1@gmail.com';
+  const smtpPass = (process.env.SMTP_PASS || 'fafo vqmk zoll hzkq').replace(/\s+/g, '');
+  const smtpHost = process.env.SMTP_HOST || 'smtp.gmail.com';
+  const smtpPort = Number(process.env.SMTP_PORT) || 465;
+  const smtpFrom = process.env.SMTP_FROM || `"C4GT Hub" <${smtpUser}>`;
 
-  if (smtpUser && smtpPass) {
+  // 1. Check Brevo HTTP API (Optional fallback if configured)
+  const brevoApiKey = process.env.BREVO_API_KEY;
+  if (brevoApiKey) {
     try {
-      if (nodemailer) {
-        const isGmail = (smtpHost && smtpHost.includes('gmail')) || (smtpUser && smtpUser.includes('@gmail.com'));
-        const transporter = nodemailer.createTransport(
-          isGmail
-            ? {
-                service: 'gmail',
-                auth: {
-                  user: smtpUser,
-                  pass: smtpPass.replace(/\s+/g, ''),
-                },
-              }
-            : {
-                host: smtpHost,
-                port: Number(smtpPort),
-                secure: Number(smtpPort) === 465,
-                auth: {
-                  user: smtpUser,
-                  pass: smtpPass.replace(/\s+/g, ''),
-                },
-              }
-        );
+      const senderEmail = process.env.BREVO_SENDER_EMAIL || smtpUser;
+      const response = await fetch('https://api.brevo.com/v3/smtp/email', {
+        method: 'POST',
+        headers: {
+          'accept': 'application/json',
+          'api-key': brevoApiKey,
+          'content-type': 'application/json',
+        },
+        body: JSON.stringify({
+          sender: { name: 'C4GT Hub Attendance', email: senderEmail },
+          to: [{ email: to }],
+          subject,
+          htmlContent: html,
+          textContent: text,
+        }),
+      });
+      if (response.ok) {
+        console.log(`✉️ [BREVO DISPATCHED] To: ${to} | Subject: ${subject}`);
+        return { success: true, mode: 'brevo' };
+      }
+    } catch (brevoErr) {
+      console.error(`⚠️ [BREVO FETCH ERROR]: ${brevoErr.message}`);
+    }
+  }
 
-        await transporter.sendMail({
+  // 2. Direct SMTP Dispatch with Automatic Port 465 -> 587 Failover
+  if (smtpUser && smtpPass) {
+    if (nodemailer) {
+      // Attempt 1: Port 465 / Gmail SMTPS
+      try {
+        const transporter465 = nodemailer.createTransport({
+          host: smtpHost,
+          port: 465,
+          secure: true,
+          connectionTimeout: 7000,
+          greetingTimeout: 7000,
+          socketTimeout: 7000,
+          auth: {
+            user: smtpUser,
+            pass: smtpPass,
+          },
+        });
+
+        await transporter465.sendMail({
           from: smtpFrom,
           to,
           subject,
           text,
           html,
         });
-        console.log(`✉️ [EMAIL DISPATCHED] To: ${to} | Subject: ${subject}`);
+        console.log(`✉️ [EMAIL DISPATCHED via SMTP 465] To: ${to} | Subject: ${subject}`);
         return { success: true, mode: 'smtp' };
-      } else if (smtpHost) {
-        await sendViaSmtpSocket(
-          { to, subject, html, text },
-          { host: smtpHost, port: smtpPort, user: smtpUser, pass: smtpPass, from: smtpFrom }
-        );
-        console.log(`✉️ [EMAIL DISPATCHED] To: ${to} | Subject: ${subject}`);
-        return { success: true, mode: 'smtp' };
+      } catch (err465) {
+        console.warn(`⚠️ [SMTP 465 Failed]: ${err465.message}. Retrying via Port 587 STARTTLS...`);
       }
-    } catch (err) {
-      console.error(`⚠️ [SMTP ERROR] Failed to send email via SMTP: ${err.message}. Falling back to console logger.`);
+
+      // Attempt 2: Port 587 STARTTLS
+      try {
+        const transporter587 = nodemailer.createTransport({
+          host: smtpHost,
+          port: 587,
+          secure: false,
+          requireTLS: true,
+          connectionTimeout: 7000,
+          greetingTimeout: 7000,
+          socketTimeout: 7000,
+          tls: {
+            rejectUnauthorized: false,
+          },
+          auth: {
+            user: smtpUser,
+            pass: smtpPass,
+          },
+        });
+
+        await transporter587.sendMail({
+          from: smtpFrom,
+          to,
+          subject,
+          text,
+          html,
+        });
+        console.log(`✉️ [EMAIL DISPATCHED via SMTP 587] To: ${to} | Subject: ${subject}`);
+        return { success: true, mode: 'smtp' };
+      } catch (err587) {
+        console.error(`⚠️ [SMTP 587 Failed]: ${err587.message}. Falling back to socket...`);
+      }
+    }
+
+    // Attempt 3: Raw Socket SMTP
+    try {
+      await sendViaSmtpSocket(
+        { to, subject, html, text },
+        { host: smtpHost, port: smtpPort, user: smtpUser, pass: smtpPass, from: smtpFrom }
+      );
+      console.log(`✉️ [EMAIL DISPATCHED via Socket] To: ${to} | Subject: ${subject}`);
+      return { success: true, mode: 'smtp' };
+    } catch (socketErr) {
+      console.error(`⚠️ [SOCKET SMTP ERROR]: ${socketErr.message}`);
     }
   }
 
