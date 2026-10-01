@@ -90,24 +90,64 @@ const sendViaSmtpSocket = (options, smtpConfig) => {
   });
 };
 
+let nodemailer;
+try {
+  nodemailer = require('nodemailer');
+} catch (e) {
+  // fallback if not available
+}
+
 /**
  * Dispatches an email using configured SMTP credentials or fallback console output.
  */
 const sendEmail = async ({ to, subject, html, text }) => {
-  const smtpHost = process.env.SMTP_HOST;
-  const smtpPort = process.env.SMTP_PORT || 587;
   const smtpUser = process.env.SMTP_USER;
   const smtpPass = process.env.SMTP_PASS;
-  const smtpFrom = process.env.SMTP_FROM || 'no-reply@c4gt-attendance.org';
+  const smtpHost = process.env.SMTP_HOST || (smtpUser && smtpUser.includes('@gmail.com') ? 'smtp.gmail.com' : undefined);
+  const smtpPort = process.env.SMTP_PORT || 465;
+  const smtpFrom = process.env.SMTP_FROM || (smtpUser ? `"C4GT Hub" <${smtpUser}>` : 'no-reply@c4gt-attendance.org');
 
-  if (smtpHost && smtpUser && smtpPass) {
+  if (smtpUser && smtpPass) {
     try {
-      await sendViaSmtpSocket(
-        { to, subject, html, text },
-        { host: smtpHost, port: smtpPort, user: smtpUser, pass: smtpPass, from: smtpFrom }
-      );
-      console.log(`✉️ [EMAIL DISPATCHED] To: ${to} | Subject: ${subject}`);
-      return { success: true, mode: 'smtp' };
+      if (nodemailer) {
+        const isGmail = (smtpHost && smtpHost.includes('gmail')) || (smtpUser && smtpUser.includes('@gmail.com'));
+        const transporter = nodemailer.createTransport(
+          isGmail
+            ? {
+                service: 'gmail',
+                auth: {
+                  user: smtpUser,
+                  pass: smtpPass.replace(/\s+/g, ''),
+                },
+              }
+            : {
+                host: smtpHost,
+                port: Number(smtpPort),
+                secure: Number(smtpPort) === 465,
+                auth: {
+                  user: smtpUser,
+                  pass: smtpPass.replace(/\s+/g, ''),
+                },
+              }
+        );
+
+        await transporter.sendMail({
+          from: smtpFrom,
+          to,
+          subject,
+          text,
+          html,
+        });
+        console.log(`✉️ [EMAIL DISPATCHED] To: ${to} | Subject: ${subject}`);
+        return { success: true, mode: 'smtp' };
+      } else if (smtpHost) {
+        await sendViaSmtpSocket(
+          { to, subject, html, text },
+          { host: smtpHost, port: smtpPort, user: smtpUser, pass: smtpPass, from: smtpFrom }
+        );
+        console.log(`✉️ [EMAIL DISPATCHED] To: ${to} | Subject: ${subject}`);
+        return { success: true, mode: 'smtp' };
+      }
     } catch (err) {
       console.error(`⚠️ [SMTP ERROR] Failed to send email via SMTP: ${err.message}. Falling back to console logger.`);
     }
